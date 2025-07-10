@@ -25,6 +25,99 @@ function addToStack(button) {
     alert('Added to stack: ' + title);
 }
 
+// Search functionality
+function performSearch(searchTerm) {
+    const courseCards = document.querySelectorAll('.course-card');
+    const categoryCards = document.querySelectorAll('.category-card');
+    const searchLower = searchTerm.toLowerCase().trim();
+    
+    let visibleCount = 0;
+    
+    // Filter course cards
+    courseCards.forEach(card => {
+        const title = card.querySelector('.course-title').textContent.toLowerCase();
+        const description = card.querySelector('.course-description').textContent.toLowerCase();
+        const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent.toLowerCase());
+        const allTags = tags.join(' ');
+        
+        const matches = title.includes(searchLower) || 
+                       description.includes(searchLower) || 
+                       allTags.includes(searchLower);
+        
+        if (matches || searchLower === '') {
+            card.style.display = 'block';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Show/hide category cards based on search
+    const featuredSection = document.querySelector('.featured-categories');
+    const recommendedSection = document.querySelector('.recommended-section');
+    
+    if (searchLower === '') {
+        // Show everything when search is empty
+        featuredSection.style.display = 'grid';
+        categoryCards.forEach(card => {
+            card.style.display = 'flex';
+        });
+        recommendedSection.querySelector('.section-title').textContent = 'Recommended For You';
+    } else {
+        // Hide featured categories during search
+        featuredSection.style.display = 'none';
+        
+        // Update section title to show search results
+        const resultsText = visibleCount === 1 ? '1 result' : `${visibleCount} results`;
+        recommendedSection.querySelector('.section-title').textContent = 
+            `Search Results: ${resultsText} for "${searchTerm}"`;
+    }
+    
+    // Show "no results" message if needed
+    showNoResultsMessage(visibleCount, searchTerm);
+}
+
+function showNoResultsMessage(visibleCount, searchTerm) {
+    // Remove existing no results message
+    const existingMessage = document.querySelector('.no-results-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    if (visibleCount === 0 && searchTerm.trim() !== '') {
+        const courseGrid = document.querySelector('.course-grid');
+        const noResultsDiv = document.createElement('div');
+        noResultsDiv.className = 'no-results-message';
+        noResultsDiv.style.cssText = `
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+            font-size: 1.1rem;
+        `;
+        noResultsDiv.innerHTML = `
+            <div style="font-size: 3rem; margin-bottom: 20px;">🔍</div>
+            <h3 style="margin-bottom: 10px; color: #4a5568;">No results found</h3>
+            <p>We couldn't find any courses matching "${searchTerm}". Try different keywords or browse our categories above.</p>
+        `;
+        courseGrid.appendChild(noResultsDiv);
+    }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Main DOM Content Loaded Handler
 document.addEventListener('DOMContentLoaded', function() {
     // Course image interactivity
@@ -46,15 +139,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Search functionality
+    // Enhanced search functionality
     const searchInput = document.querySelector('.search-input');
     if (searchInput) {
+        // Create debounced search function
+        const debouncedSearch = debounce((searchTerm) => {
+            performSearch(searchTerm);
+        }, 300);
+        
+        // Real-time search as user types
+        searchInput.addEventListener('input', function() {
+            debouncedSearch(this.value);
+        });
+        
+        // Search on Enter key
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch(this.value);
+            }
+        });
+        
+        // Visual feedback on focus
         searchInput.addEventListener('focus', function() {
             this.style.transform = 'scale(1.02)';
         });
         
         searchInput.addEventListener('blur', function() {
             this.style.transform = 'scale(1)';
+        });
+        
+        // Clear search when input is cleared
+        searchInput.addEventListener('input', function() {
+            if (this.value === '') {
+                performSearch('');
+            }
         });
     }
 
