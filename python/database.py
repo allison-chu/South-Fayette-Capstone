@@ -1,11 +1,13 @@
 import sqlite3
 import os
 
+#creates the database and the data tables
 def create_database():
 
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
+#data table for all the different classes available
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS classes (
         name TEXT,
@@ -20,6 +22,7 @@ def create_database():
         )
     ''')
 
+#data table for all the extracurriculars aviable 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS extracurriculars (
             name TEXT,
@@ -30,6 +33,7 @@ def create_database():
         )
     ''')
 
+#data table for all the events aviable
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS events (
             name TEXT,
@@ -41,6 +45,7 @@ def create_database():
         )
     ''')
 
+#data table for all the student data that exists
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS student_data (
           eventType TEXT,
@@ -56,6 +61,7 @@ def create_database():
     conn.close
     print("database created")
 
+#current list of classes, seeds the data table
     class_list = [
         ('video production 1', 'business', 'video production,creative thinking,digital work,teamwork', 'Have you ever wondered what goes into making the commercials you see on TV? This elective course introduces students to digital video shooting and editing techniques. Students will learn the process of video production, from brainstorming to filming on set to editing in Adobe Premiere Pro CC. No previous experience or knowledge is necessary - just bring your creativity!,', 5017, 0.5, '9,10,11,12', 'semester', None),
         ('video production 2', 'business', 'video production,project learning,media creation,project management', 'This project-based elective course builds on the skills learned in Video Production 1 and gives students the tools to create more professional videos. Students will not only produce on-air programming for SF-TV 3, but also participate in local contests and create materials for the District. Projects include commercials, PSAs, cinematic shorts, and news packages. Along the way, students will further develop important life and career skills such as responsibility, organization, and teamwork.', 5037, 0.5, '9,10,11,12', 'semester', 'video production 1'),
@@ -257,11 +263,13 @@ def create_database():
         ('applied positive psychology',	'social studies', 'well-being,applied psychology,mind-body connection,development',	'What is happiness? Do we really know what will make us happy? How can we find the “good life?” One Positive Psychologist noted that “People are like plants: if you get the conditions just right, they will usually flourish.” So, what are those conditions? In this course we will question and then inform our “happiness hypotheses” of what makes life worth living. We will discuss how positive emotions, engagement, relationships, meaning, and accomplishment all help us achieve what Aristotle referred to as “eudaemonia,” or “flourishing.” Throughout the course of the semester we will cover the tools of positive psychology that have been validated through science and research and begin to view people from a strengths-based perspective. Beyond individuals, we will discuss positive organizations and communities. Additional topics include character strengths, compassion, fulfillment, hope, optimism, mindfulness, mind-body wellness, gratitude, flow, satisficing, self-efficacy and motivation, grit, and resilience. Students will also be expected to participate in positive interventions throughout the semester. Ultimately, this course should help you increase your well-being and thriving now and in the future.', 1006, 0.5, '9,10,11,12', 'semester', None)
        ]
 
+#adds the classes to the table
     cursor.executemany('''
         INSERT OR REPLACE INTO classes (name, domain, tags, description, number, numOfCredits, yearRequirement, length, prerequisite)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', class_list)
 
+#data for the extracurriculars, seeds the table
     extracurriculars_list = [
         ('after school chorus',	'fine arts', 'musical development,teamwork,collaboration',	'After School Chorus is a great opportunity to sing with the high school choir students in rehearsal and performance, for those students who are unable to schedule choir. Students attend rehearsal twice per month and learn the repertoire. This is a chance to meet new friends and work together towards the common goal of creating musical works of art.', 'Mrs. Elek'),
         ('art club', 'fine arts', 'creative exploration,community engagement,skill development', 'All are welcome to join the high school Art Club. Its a great opportunity to have fun with art projects and meet new people. Explore art beyond the classroom such as paper marbling, spin art, polymer clay and more! We also provide opportunities for community service projects, field trips, and fundraisers.', 'Mrs. Contis, Ms. DeFelice'),
@@ -304,11 +312,13 @@ def create_database():
         ('underwater robotics',	'technology', 'design,engineering,teamwork', 'To develop a company and Ranger Class Underwater Remotely Operated Vehicle to compete at Regionals and qualify for the International Competition.', 'pending')
     ]
 
+#inserts the data into the data table
     cursor.executemany('''
         INSERT OR IGNORE INTO extracurriculars (name, domain, tags, description, teacherSponser)
         VALUES (?, ?, ?, ?, ?)
     ''', extracurriculars_list)
 
+#data for the student data, seeds the data table
     student_data_list = [
         ('class', 'honors english 9 (writing intensive)', 'enjoys the writing portions,enjoys reading the novels', 'dislike the teacher,dislike the specific books', 4, 'freshman'),
         ('class', 'honors english 10 (writing intensive)',	'enjoyed reading a graphic novel,liked the ability to write', 'dislike the teacher', 3,	'sophmore'),
@@ -339,6 +349,7 @@ def create_database():
         ('extracurricular',	'stage crew club', 'creating and putting on a preformance',	'working with the actors,working with the director', 3,	'sophmore')   
     ]
 
+#inserts the data into the data table
     cursor.executemany('''
         INSERT OR IGNORE INTO student_data (eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearCompleted)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -347,6 +358,70 @@ def create_database():
     conn.commit()
     conn.close()
 
+
+
+
+#method for getting information out of the database
+def query_database() :
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    conn.close()
+
+#method for adding classes to the classes data table, must provide all the necessary data fields 
+def add_class(name, domain, tags, description, number, numOfCredits, yearRequirement, length, prerequisite) :
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+#checks for all the required data fields, throws an error with a message if it is missing any
+    try:
+        cursor.execute('''
+            INSERT INTO classes (name, domain, tags, description, number, numOfCredits, yearRequirement, length, prerequisite)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (name, domain, tags, description, number, numOfCredits, yearRequirement, length, prerequisite))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        print(f"Error: data does not currently match")
+    finally:
+        conn.close()
+
+#metod to add extracurriculars to the extracurriculars data table, must provide all necessary data fields
+def add_extracurriculars(name, domain, tags, description, teacherSponser) :
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+#checks for all the required data fields, throws an error with a message if it is missing any
+    try:
+        cursor.execute('''
+            INSERT INTO extracurriculars (name, domain, tags, description, teacherSponser)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (name, domain, tags, description, teacherSponser))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        print(f"Error: data does not currently match")
+    finally:
+        conn.close()
+
+#metod to add student data to the student_data data table, must provide all necessary data fields
+def add_student_data(eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearCompleted) :
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+#checks for all the required data fields, throws an error with a message if it is missing any
+    try:
+        cursor.execute('''
+            INSERT INTO student_data (eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearCompleted)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearCompleted))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        print(f"Error: data does not currently match")
+    finally:
+        conn.close()
+
+
+
+#creates the initial datatable, only does this once
 if __name__ == "__main__":
     create_database()
 
