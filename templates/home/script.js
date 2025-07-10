@@ -29,6 +29,7 @@ function addToStack(button) {
 function performSearch(searchTerm) {
     const courseCards = document.querySelectorAll('.course-card');
     const categoryCards = document.querySelectorAll('.category-card');
+    const courseGrid = document.querySelector('.course-grid');
     const searchLower = searchTerm.toLowerCase().trim();
     
     let visibleCount = 0;
@@ -53,6 +54,17 @@ function performSearch(searchTerm) {
             card.style.display = 'none';
         }
     });
+    
+    // Adjust grid layout based on visible count
+    if (searchLower !== '') {
+        // During search, keep cards the same size as homepage
+        courseGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+        courseGrid.style.justifyContent = 'start';
+    } else {
+        // Reset to original grid layout
+        courseGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(300px, 1fr))';
+        courseGrid.style.justifyContent = 'initial';
+    }
     
     // Show/hide category cards based on search
     const featuredSection = document.querySelector('.featured-categories');
