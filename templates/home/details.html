@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intro to Environmental Sciences</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-placeholder">LOGO</div>
+  </div>
+  <div class="nav-items">
+    <button class="nav-item">
+      <span class="nav-item-icon"></span>
+      Dashboard
+    </button>
+    <button class="nav-item active">
+      <span class="nav-item-icon"></span>
+      Explore
+    </button>
+    <button class="nav-item">
+      <span class="nav-item-icon"></span>
+      Notifications
+    </button>
+    <button class="nav-item">
+      <span class="nav-item-icon"></span>
+      Schedule
+    </button>
+    <button class="nav-item">
+      <span class="nav-item-icon"></span>
+      Progress Log
+    </button>
+  </div>
+  <div class="nav-bottom">
+    <button class="nav-item">
+      <span class="nav-item-icon"></span>
+      Logout
+    </button>
+    <button class="nav-item">
+      <span class="nav-item-icon"></span>
+      Settings
+    </button>
+  </div>
+</div>
+
+<div class="container">
+
+  <a href="#" style="font-size:0.85rem; color:#475569; text-decoration:none; display:inline-block; margin-bottom:20px;">⟵ Back to Explore</a>
+
+  <div class="course-header">
+    <div class="course-image">Image</div>
+
+    <div class="course-info">
+      <div class="course-title">Intro to Environmental Sciences</div>
+      <div class="course-tags">
+        <span class="tag">General Science</span>
+        <span class="tag">Research</span>
+        <span class="tag">STEM</span>
+      </div>
+
+      <div>
+        <div class="section-title">Overview</div>
+        <div class="course-description">
+          Explore climate change, ecosystems, and human impact on the environment through lab work and real-world projects. Perfect for students curious about science and global issues.
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Skills You'll Build</div>
+        <div class="skills-grid">
+          <div class="skills-column">
+            <ul>
+              <li>Research & Data Analysis</li>
+              <li>Critical Thinking</li>
+              <li>Scientific Writing</li>
+              <li>Collaboration</li>
+            </ul>
+          </div>
+          <div class="skills-column">
+            <ul>
+              <li>Laboratory Techniques</li>
+              <li>Environmental Monitoring</li>
+              <li>Statistical Analysis</li>
+              <li>Project Management</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="recommendations-title">You may also like</div>
+  <div class="recommendations-wrapper">
+    <div class="nav-arrow" onclick="scrollRecommendations(-1)">‹</div>
+
+    <div class="recommendations-grid" id="recGrid">
+      <div class="recommendation-card">
+        <div class="card-image"></div>
+        <div class="card-title">Marine Biology</div>
+        <div class="card-tags">
+          <span class="tag">Biology</span>
+          <span class="tag">Research</span>
+        </div>
+        <div class="card-description">Dive into ocean ecosystems and marine life conservation efforts</div>
+        <button class="btn btn-primary">View Details</button>
+        <button class="btn btn-secondary">Add to Stack</button>
+      </div>
+
+      <div class="recommendation-card">
+        <div class="card-image"></div>
+        <div class="card-title">Climate Change & Policy</div>
+        <div class="card-tags">
+          <span class="tag">Environmental</span>
+          <span class="tag">Policy</span>
+        </div>
+        <div class="card-description">Analyze global climate policies and their environmental impact</div>
+        <button class="btn btn-primary">View Details</button>
+        <button class="btn btn-secondary">Add to Stack</button>
+      </div>
+
+      <div class="recommendation-card">
+        <div class="card-image"></div>
+        <div class="card-title">Sustainable Energy Systems</div>
+        <div class="card-tags">
+          <span class="tag">Engineering</span>
+          <span class="tag">Sustainability</span>
+        </div>
+        <div class="card-description">Design and implement renewable energy solutions</div>
+        <button class="btn btn-primary">View Details</button>
+        <button class="btn btn-secondary">Add to Stack</button>
+      </div>
+
+      <div class="recommendation-card">
+        <div class="card-image"></div>
+        <div class="card-title">Ecology & Conservation</div>
+        <div class="card-tags">
+          <span class="tag">Biology</span>
+          <span class="tag">Conservation</span>
+        </div>
+        <div class="card-description">Study ecosystems and wildlife conservation strategies</div>
+        <button class="btn btn-primary">View Details</button>
+        <button class="btn btn-secondary">Add to Stack</button>
+      </div>
+    </div>
+
+    <div class="nav-arrow" onclick="scrollRecommendations(1)">›</div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
