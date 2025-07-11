@@ -302,7 +302,7 @@ class StudentDataAI:
 
         if __name__ == "__main__":
             student_ai = StudentDataAI(
-                api_key = "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",
+                api_key = openai_key,
                 db_path = "../database.db"
             )
 
