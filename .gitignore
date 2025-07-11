@@ -3,7 +3,7 @@ __pychache__/
 *$py.class
 
 
-#*.env
+*.env
 .venv
 env/
 venv/
