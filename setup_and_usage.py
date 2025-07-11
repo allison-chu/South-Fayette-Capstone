@@ -1,6 +1,10 @@
 import os
 import sqlite3
 from AI_system import StudentDataAI
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path='keys.env')
+openai_key =os.getenv('openAI_api_key')
 
 def setup_environment():
     print("setting up student data AI system...")
@@ -124,7 +128,7 @@ def main():
     
 
     print("\nConfiguration:")
-    api_key = input("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: ").strip()
+    api_key = input("openai_key: ").strip()
     db_path = input("../database.db: ").strip()
 
     if not db_path:

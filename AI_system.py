@@ -3,10 +3,14 @@ import json
 import pandas as pd
 from openai import OpenAI
 from typing import List, Dict, Any, Optional
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path='keys.env')
+openai_key =os.getenv('openAI_api_key')
 
 class StudentDataAI:
     def __init__(self, api_key: str, db_path: str="database.db"):
-        self.client = OpenAI(api_key = "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")
+        self.client = OpenAI(openai_key)
         self.db_path = db_path
 
     def get_all_data(self) -> List[Dict]:
