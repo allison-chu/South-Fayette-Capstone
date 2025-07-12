@@ -113,7 +113,7 @@ def test_recommendations(student_ai):
         try:
             response = student_ai.get_recommendations(query)
             print(response[:500] + "..." if len(response) > 500 else response)
-        except Exeption as e:
+        except Exception as e:
             print(f"Error: {e}")
 
             print("-"*40)
