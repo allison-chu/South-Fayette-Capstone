@@ -250,5 +250,129 @@ document.addEventListener('DOMContentLoaded', function() {
         card.style.transform = 'translateY(20px)';
         card.style.transition = `all 0.6s ease ${index * 0.1}s`;
         observer.observe(card);
+
     });
+
+    fetchRecommendations();
 });
+
+function fetchRecommendations() {
+    const recommendedSection = document.querySelector(".recommended-section");
+    const courseGrid = recommendedSection.querySelector(".course-grid");
+    courseGrid.innerHTML = ""; // clear old cards
+
+    fetch("/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: "What classes or activities do you recommend?" })
+    })
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            console.log("✅ Received data from server:", data);
+
+            const text = data.result;
+
+            const [classesSection, activitiesSection] =
+                text.split("**Extracurricular Activities**:");
+
+            if (!classesSection || !activitiesSection) {
+                console.warn("⚠️ Could not parse sections properly. Showing raw response.");
+                const card = document.createElement("div");
+                card.className = "course-card";
+                card.innerHTML = `
+                    <div class="course-content">
+                        <h3 class="course-title">AI Recommendations</h3>
+                        <p class="course-description" style="white-space: pre-wrap;">${text}</p>
+                    </div>
+                `;
+                courseGrid.appendChild(card);
+                return;
+            }
+
+            const classes = classesSection
+                .replace("**Classes**:", "")
+                .split("\n")
+                .filter(line => line.trim().startsWith("-"))
+                .map(line => line.replace("-", "").trim());
+
+            const activities = activitiesSection
+                .split("\n")
+                .filter(line => line.trim().startsWith("-"))
+                .map(line => line.replace("-", "").trim());
+
+            // --- Add Classes Section Title ---
+            const classHeader = document.createElement("h2");
+            classHeader.className = "section-title";
+            classHeader.textContent = "Classes";
+            courseGrid.appendChild(classHeader);
+
+            classes.forEach(cls => {
+                const card = createRecommendationCard(cls, "class-card");
+                courseGrid.appendChild(card);
+            });
+
+            // --- Add Activities Section Title ---
+            const activityHeader = document.createElement("h2");
+            activityHeader.className = "section-title";
+            activityHeader.textContent = "Extracurricular Activities";
+            courseGrid.appendChild(activityHeader);
+
+            activities.forEach(act => {
+                const card = createRecommendationCard(act, "activity-card");
+                courseGrid.appendChild(card);
+            });
+        })
+        .catch(err => {
+            console.error("❌ Failed to fetch or parse recommendations:", err);
+            const errorCard = document.createElement("div");
+            errorCard.className = "course-card";
+            errorCard.style.gridColumn = "1 / -1";
+            errorCard.style.padding = "20px";
+            errorCard.style.background = "#fff5f5";
+            errorCard.style.border = "1px solid #fed7d7";
+            errorCard.style.borderRadius = "8px";
+            errorCard.innerHTML = `<p>⚠️ Failed to fetch recommendations.</p>`;
+            courseGrid.appendChild(errorCard);
+        });
+}
+
+// helper to create a card with buttons
+function createRecommendationCard(text, type) {
+    const card = document.createElement("div");
+    card.className = `course-card ${type}`;
+
+    const [title, ...descParts] = text.split(":");
+    const description = descParts.join(":").trim();
+
+    card.innerHTML = `
+        <div class="course-content">
+            <h3 class="course-title">${title.trim()}</h3>
+            <p class="course-description">${description}</p>
+            <div class="course-actions">
+                <a href="details.html" class="btn btn-primary">View Details</a>
+                <button class="btn btn-secondary">Add to Stack</button>
+            </div>
+        </div>
+    `;
+
+    // Attach "Add to Stack" behavior
+    const addToStackBtn = card.querySelector(".btn-secondary");
+    addToStackBtn.addEventListener("click", function () {
+        this.textContent = "Added ✓";
+        this.style.background = "#48bb78";
+        this.style.color = "white";
+        this.style.borderColor = "#48bb78";
+
+        setTimeout(() => {
+            this.textContent = "Add to Stack";
+            this.style.background = "transparent";
+            this.style.color = "#4a5568";
+            this.style.borderColor = "#e2e8f0";
+        }, 2000);
+    });
+
+    return card;
+}
