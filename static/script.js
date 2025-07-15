@@ -4,12 +4,7 @@ function scrollRecommendations(dir) {
     grid.scrollBy({ left: dir * 250, behavior: 'smooth' });
 }
 
-// Navigation functions
-function goBack() {
-    window.history.back();
-}
-
-// Capitalize each word in a string
+// Capitalize each word
 function capitalizeWords(str) {
     return str
         .split(" ")
@@ -17,12 +12,12 @@ function capitalizeWords(str) {
         .join(" ");
 }
 
-// Truncate text to a certain length
+// Truncate
 function truncate(text, maxLength = 150) {
     return text.length > maxLength ? text.slice(0, maxLength) + '…' : text;
 }
 
-// Create a card (homepage or explore page)
+// Create a card
 function createCard(item, type) {
     const card = document.createElement("div");
     card.className = `course-card ${type}`;
@@ -48,7 +43,7 @@ function createCard(item, type) {
     return card;
 }
 
-// View details — full description
+// View details
 function viewDetails(button) {
     const card = button.closest('.course-card') || button.closest('.recommendation-card');
     const content = card.querySelector('.course-content');
@@ -60,7 +55,7 @@ function viewDetails(button) {
     createDetailPage(title, description, tags);
 }
 
-// Create detail page content + You May Also Like
+// Create detail page
 function createDetailPage(title, description, tags) {
     const currentContent = document.querySelector('.container').innerHTML;
     sessionStorage.setItem('previousPage', currentContent);
@@ -125,7 +120,7 @@ function createDetailPage(title, description, tags) {
     fetchDummyRecommendations();
 }
 
-// Fetch dummy recs for the detail page
+// Fetch dummy recs for You May Also Like
 function fetchDummyRecommendations() {
     const recGrid = document.getElementById('recGrid');
     recGrid.innerHTML = '';
@@ -137,10 +132,7 @@ function fetchDummyRecommendations() {
     })
         .then(res => res.json())
         .then(data => {
-            const all = [...(data.classes || []), ...(data.activities || [])];
-            if (all.length > 3) {
-                all.splice(3); // keep only 3
-            }
+            const all = [...(data.classes || []), ...(data.activities || [])].slice(0, 4);
 
             all.forEach(item => {
                 const tags = (item.tags || "")
@@ -150,9 +142,9 @@ function fetchDummyRecommendations() {
 
                 const card = document.createElement("div");
                 card.className = "recommendation-card";
-                card.style.flex = "1"; // Make cards expand to fill space
-                card.style.width = "auto"; // Override fixed width
-                card.style.minWidth = "200px"; // Minimum width to prevent too small cards
+                card.style.flex = "1";
+                card.style.width = "auto";
+                card.style.minWidth = "200px";
 
                 card.innerHTML = `
                     <div class="card-image"></div>
@@ -176,22 +168,31 @@ function fetchDummyRecommendations() {
             recGrid.innerHTML = `<p style="color: #e53e3e;">Failed to load recommendations.</p>`;
         });
 }
+
+// Go back to explore & keep same recs
 function goBackToExplore() {
+    const cached = sessionStorage.getItem("cachedRecommendations");
     document.querySelector('.container').innerHTML = sessionStorage.getItem('explorePage');
     document.title = 'Explore';
     initializeEventListeners();
+
+    if (cached) {
+        const recommendedSection = document.querySelector(".recommended-section");
+        const courseGrid = recommendedSection.querySelector(".course-grid");
+        courseGrid.innerHTML = "";
+        renderRecommendations(JSON.parse(cached), courseGrid);
+    }
 }
 
-// Save Explore state *once* when page loads:
-document.addEventListener('DOMContentLoaded', function() {
+// Save explore state and fetch on page load
+document.addEventListener('DOMContentLoaded', function () {
     initializeEventListeners();
-    fetchRecommendations();
 
-    // Save explore page at start
     const exploreContent = document.querySelector('.container').innerHTML;
     sessionStorage.setItem('explorePage', exploreContent);
-});
 
+    fetchRecommendations();
+});
 
 // Add to stack
 function addToStack(button) {
@@ -211,11 +212,18 @@ function addToStack(button) {
     }, 2000);
 }
 
-// Homepage fetch
+// Fetch recommendations and cache
 function fetchRecommendations() {
     const recommendedSection = document.querySelector(".recommended-section");
     const courseGrid = recommendedSection.querySelector(".course-grid");
-    courseGrid.innerHTML = ""; // clear old cards
+    courseGrid.innerHTML = "";
+
+    const cached = sessionStorage.getItem("cachedRecommendations");
+    if (cached) {
+        console.log("✅ Using cached recommendations");
+        renderRecommendations(JSON.parse(cached), courseGrid);
+        return;
+    }
 
     fetch("/recommendations", {
         method: "POST",
@@ -224,32 +232,8 @@ function fetchRecommendations() {
     })
         .then(res => res.json())
         .then(data => {
-            const classes = data.classes || [];
-            const activities = data.activities || [];
-
-            if (classes.length > 0) {
-                const classHeader = document.createElement("h2");
-                classHeader.className = "section-title";
-                classHeader.textContent = "Classes";
-                courseGrid.appendChild(classHeader);
-
-                classes.forEach(cls => {
-                    const card = createCard(cls, "class-card");
-                    courseGrid.appendChild(card);
-                });
-            }
-
-            if (activities.length > 0) {
-                const activityHeader = document.createElement("h2");
-                activityHeader.className = "section-title";
-                activityHeader.textContent = "Extracurricular Activities";
-                courseGrid.appendChild(activityHeader);
-
-                activities.forEach(act => {
-                    const card = createCard(act, "activity-card");
-                    courseGrid.appendChild(card);
-                });
-            }
+            sessionStorage.setItem("cachedRecommendations", JSON.stringify(data));
+            renderRecommendations(data, courseGrid);
         })
         .catch(err => {
             console.error("❌ Failed to fetch recommendations:", err);
@@ -259,6 +243,36 @@ function fetchRecommendations() {
             errorCard.innerHTML = `<p>⚠️ Failed to fetch recommendations.</p>`;
             courseGrid.appendChild(errorCard);
         });
+}
+
+// Render recommendations
+function renderRecommendations(data, courseGrid) {
+    const classes = data.classes || [];
+    const activities = data.activities || [];
+
+    if (classes.length > 0) {
+        const classHeader = document.createElement("h2");
+        classHeader.className = "section-title";
+        classHeader.textContent = "Classes";
+        courseGrid.appendChild(classHeader);
+
+        classes.forEach(cls => {
+            const card = createCard(cls, "class-card");
+            courseGrid.appendChild(card);
+        });
+    }
+
+    if (activities.length > 0) {
+        const activityHeader = document.createElement("h2");
+        activityHeader.className = "section-title";
+        activityHeader.textContent = "Extracurricular Activities";
+        courseGrid.appendChild(activityHeader);
+
+        activities.forEach(act => {
+            const card = createCard(act, "activity-card");
+            courseGrid.appendChild(card);
+        });
+    }
 }
 
 // Initialize listeners
