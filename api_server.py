@@ -1,47 +1,55 @@
-from flask import Flask, request, jsonify, send_from_directory
-from AI_system import StudentDataAI
+from flask import Flask, jsonify, request, render_template
 import os
+import sqlite3
+import random
 
-from dotenv import load_dotenv
-load_dotenv()
+app = Flask(__name__, template_folder='templates')
 
-app = Flask(__name__, static_url_path='', static_folder='.')
+# your StudentDataAI class
+class StudentDataAI:
+    def __init__(self, api_key: str, db_path: str = "database.db"):
+        self.api_key = api_key
+        self.db_path = db_path
 
-ai = StudentDataAI(
-    api_key=os.getenv("openAI_api_key"),
-    db_path="database.db"
-)
+    def get_all_classes(self):
+        return self._query_db("SELECT name, description, tags FROM classes")
+
+    def get_all_extracurriculars(self):
+        return self._query_db("SELECT name, description, tags FROM extracurriculars")
+
+    def _query_db(self, query):
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            column_names = [desc[0] for desc in cursor.description]
+            conn.close()
+            return [dict(zip(column_names, row)) for row in rows]
+        except Exception as e:
+            print(f"Database error: {e}")
+            return []
+
+student_ai = StudentDataAI(api_key=os.getenv("openAI_api_key"), db_path="database.db")
 
 @app.route("/")
 def home():
-    return send_from_directory(".", "explore.html")
-
-@app.route("/script.js")
-def js():
-    return send_from_directory(".", "script.js")
-
-@app.route("/styles.css")
-def css():
-    return send_from_directory(".", "styles.css")
-
-@app.route("/<path:path>")
-def static_files(path):
-    return send_from_directory(".", path)
+    return render_template("explore.html")
 
 @app.route("/recommendations", methods=["POST"])
 def recommendations():
-    data = request.json
-    query = data.get("query", "")
-    context = data.get("context", "")
+    classes = student_ai.get_all_classes()
+    activities = student_ai.get_all_extracurriculars()
 
-    print(f"Received query: {query}")
-    print(f"With context: {context}")
+    if len(classes) >= 3:
+        classes = random.sample(classes, 3)
+    if len(activities) >= 3:
+        activities = random.sample(activities, 3)
 
-    # call real AI now:
-    result = ai.get_recommendations(query, context)
-
-    return jsonify({"result": result})
-
+    return jsonify({
+        "classes": classes,
+        "activities": activities
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)

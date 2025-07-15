@@ -25,11 +25,9 @@ function viewDetails(button) {
 }
 
 function createDetailPage(title, description, tags) {
-    // Store current page content
     const currentContent = document.querySelector('.container').innerHTML;
     sessionStorage.setItem('previousPage', currentContent);
 
-    // Create initial detail page content
     const detailContent = `
         <a href="#" onclick="goBackToExplore()" style="font-size:0.85rem; color:#475569; text-decoration:none; display:inline-block; margin-bottom:20px;">⟵ Back to Explore</a>
 
@@ -70,92 +68,13 @@ function createDetailPage(title, description, tags) {
                 </div>
             </div>
         </div>
-
-        <div class="recommendations-title">You may also like</div>
-        <div class="recommendations-wrapper">
-            <div class="nav-arrow" onclick="scrollRecommendations(-1)">‹</div>
-
-            <div class="recommendations-grid" id="recGrid">
-                <p>Loading recommendations…</p>
-            </div>
-
-            <div class="nav-arrow" onclick="scrollRecommendations(1)">›</div>
-        </div>
     `;
 
-    // Replace the container content
     document.querySelector('.container').innerHTML = detailContent;
-
-    // Update page title
     document.title = title;
-
-    // Scroll to top
     window.scrollTo(0, 0);
-
-    // Fetch real recommendations from the backend
-    fetch("/recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: `What are related classes and activities to ${title}?` })
-    })
-    .then(res => res.json())
-    .then(data => {
-        const text = data.result;
-        console.log("✅ Recommendations:", text);
-
-        const recGrid = document.getElementById('recGrid');
-        recGrid.innerHTML = ''; // clear loading message
-
-        const [classesSection, activitiesSection] = text.split("**Extracurricular Activities**:");
-
-        const classes = classesSection
-            .replace("**Classes**:", "")
-            .split("\n")
-            .filter(line => line.trim().startsWith("-"))
-            .map(line => line.replace("-", "").trim());
-
-        const activities = activitiesSection
-            ? activitiesSection
-                .split("\n")
-                .filter(line => line.trim().startsWith("-"))
-                .map(line => line.replace("-", "").trim())
-            : [];
-
-        const allRecs = [
-            ...classes.map(cls => ({ type: 'Class', text: cls })),
-            ...activities.map(act => ({ type: 'Activity', text: act }))
-        ];
-
-        if (allRecs.length === 0) {
-            recGrid.innerHTML = `<p>No recommendations found.</p>`;
-            return;
-        }
-
-        allRecs.forEach(rec => {
-            const [recTitle, ...recDescParts] = rec.text.split(":");
-            const recDescription = recDescParts.join(":").trim();
-
-            const card = document.createElement("div");
-            card.className = "recommendation-card";
-            card.innerHTML = `
-                <div class="card-image"></div>
-                <div class="card-title">${recTitle.trim()}</div>
-                <div class="card-tags">
-                    <span class="tag">${rec.type}</span>
-                </div>
-                <div class="card-description">${recDescription}</div>
-                <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
-            `;
-            recGrid.appendChild(card);
-        });
-    })
-    .catch(err => {
-        console.error("❌ Failed to fetch recommendations:", err);
-        const recGrid = document.getElementById('recGrid');
-        recGrid.innerHTML = '<p style="color: #e53e3e;">Failed to load recommendations.</p>';
-    });
 }
+
 
 
 function goBackToExplore() {
@@ -410,6 +329,20 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchRecommendations();
 });
 
+// Capitalize each word in a string
+function capitalizeWords(str) {
+    return str
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
+// Truncate text to a certain length
+function truncate(text, maxLength = 150) {
+    return text.length > maxLength ? text.slice(0, maxLength) + '…' : text;
+}
+
+// Fetch and render recommendations
 function fetchRecommendations() {
     const recommendedSection = document.querySelector(".recommended-section");
     const courseGrid = recommendedSection.querySelector(".course-grid");
@@ -420,102 +353,62 @@ function fetchRecommendations() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: "What classes and extracurricular activities do you recommend?" })
     })
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
-            console.log("✅ Received data from server:", data);
+            const classes = data.classes || [];
+            const activities = data.activities || [];
 
-            const text = data.result;
+            if (classes.length > 0) {
+                const classHeader = document.createElement("h2");
+                classHeader.className = "section-title";
+                classHeader.textContent = "Recommended Classes";
+                courseGrid.appendChild(classHeader);
 
-            const [classesSection, activitiesSection] =
-                text.split("**Extracurricular Activities**:");
-
-            if (!classesSection || !activitiesSection) {
-                console.warn("⚠️ Could not parse sections properly. Showing raw response.");
-                const card = document.createElement("div");
-                card.className = "course-card";
-                card.innerHTML = `
-                    <div class="course-content">
-                        <h3 class="course-title">AI Recommendations</h3>
-                        <p class="course-description" style="white-space: pre-wrap;">${text}</p>
-                    </div>
-                `;
-                courseGrid.appendChild(card);
-                return;
+                classes.forEach(cls => {
+                    const card = createCard(cls, "class-card");
+                    courseGrid.appendChild(card);
+                });
             }
 
-            const classes = classesSection
-                .replace("**Classes**:", "")
-                .split("\n")
-                .filter(line => line.trim().startsWith("-"))
-                .map(line => line.replace("-", "").trim())
-                .slice(0, 3); // only take first 3
+            if (activities.length > 0) {
+                const activityHeader = document.createElement("h2");
+                activityHeader.className = "section-title";
+                activityHeader.textContent = "Recommended Extracurricular Activities";
+                courseGrid.appendChild(activityHeader);
 
-            const activities = activitiesSection
-                .split("\n")
-                .filter(line => line.trim().startsWith("-"))
-                .map(line => line.replace("-", "").trim())
-                .slice(0, 3); // only take first 3
-
-            // --- Add Classes Section ---
-            const classHeader = document.createElement("h2");
-            classHeader.className = "section-title";
-            classHeader.textContent = "Recommended Classes";
-            courseGrid.appendChild(classHeader);
-
-            classes.forEach(cls => {
-                const card = createRecommendationCard(cls, "class-card");
-                courseGrid.appendChild(card);
-            });
-
-            // --- Add Activities Section ---
-            const activityHeader = document.createElement("h2");
-            activityHeader.className = "section-title";
-            activityHeader.textContent = "Recommended Extracurricular Activities";
-            courseGrid.appendChild(activityHeader);
-
-            activities.forEach(act => {
-                const card = createRecommendationCard(act, "activity-card");
-                courseGrid.appendChild(card);
-            });
+                activities.forEach(act => {
+                    const card = createCard(act, "activity-card");
+                    courseGrid.appendChild(card);
+                });
+            }
         })
         .catch(err => {
-            console.error("❌ Failed to fetch or parse recommendations:", err);
+            console.error("❌ Failed to fetch recommendations:", err);
             const errorCard = document.createElement("div");
             errorCard.className = "course-card";
             errorCard.style.gridColumn = "1 / -1";
-            errorCard.style.padding = "20px";
-            errorCard.style.background = "#fff5f5";
-            errorCard.style.border = "1px solid #fed7d7";
-            errorCard.style.borderRadius = "8px";
             errorCard.innerHTML = `<p>⚠️ Failed to fetch recommendations.</p>`;
             courseGrid.appendChild(errorCard);
         });
 }
 
-
-// helper to create a card with buttons
-function createRecommendationCard(text, type) {
+// Create a card (truncated description, full description stored in data attribute)
+function createCard(item, type) {
     const card = document.createElement("div");
     card.className = `course-card ${type}`;
 
-    const [title, ...descParts] = text.split(":");
-    const description = descParts.join(":").trim();
-
-    // Generate some default tags based on type
-    const defaultTags = type === "class-card" ? 
-        ['Academic', 'Learning'] : 
-        ['Extracurricular', 'Activity'];
+    const tags = (item.tags || "")
+        .split(",")
+        .map(tag => capitalizeWords(tag.trim()))
+        .slice(0, 3);
 
     card.innerHTML = `
-        <div class="course-content">
-            <h3 class="course-title">${title.trim()}</h3>
+        <div class="course-content" data-full-description="${item.description}">
+            <h3 class="course-title">${capitalizeWords(item.name)}</h3>
             <div class="course-tags">
-                ${defaultTags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                ${tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
             </div>
-            <p class="course-description">${description}</p>
+            <p class="course-description">${truncate(item.description)}</p>
             <div class="course-actions">
                 <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
                 <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
@@ -524,4 +417,114 @@ function createRecommendationCard(text, type) {
     `;
 
     return card;
+}
+
+// View details — full description
+function viewDetails(button) {
+    const card = button.closest('.course-card') || button.closest('.recommendation-card');
+    const content = card.querySelector('.course-content');
+
+    const title = content.querySelector('.course-title').textContent;
+    const description = content.getAttribute('data-full-description');
+    const tags = Array.from(content.querySelectorAll('.tag')).map(tag => tag.textContent);
+
+    createDetailPage(title, description, tags);
+}
+
+// Create detail page content
+function createDetailPage(title, description, tags) {
+    const currentContent = document.querySelector('.container').innerHTML;
+    sessionStorage.setItem('previousPage', currentContent);
+
+    const detailContent = `
+        <a href="#" onclick="goBackToExplore()" style="font-size:0.85rem; color:#475569; text-decoration:none; display:inline-block; margin-bottom:20px;">⟵ Back to Explore</a>
+
+        <div class="course-header">
+            <div class="course-image-details">Image</div>
+
+            <div class="course-info">
+                <div class="course-title">${title}</div>
+                <div class="course-tags">
+                    ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+
+                <div>
+                    <div class="section-title">Overview</div>
+                    <div class="course-description">${description}</div>
+                </div>
+
+                <div>
+                    <div class="section-title">Skills You'll Build</div>
+                    <div class="skills-grid">
+                        <div class="skills-column">
+                            <ul>
+                                <li>Critical Thinking</li>
+                                <li>Problem Solving</li>
+                                <li>Research Skills</li>
+                                <li>Communication</li>
+                            </ul>
+                        </div>
+                        <div class="skills-column">
+                            <ul>
+                                <li>Project Management</li>
+                                <li>Collaboration</li>
+                                <li>Technical Skills</li>
+                                <li>Leadership</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.querySelector('.container').innerHTML = detailContent;
+    document.title = title;
+    window.scrollTo(0, 0);
+}
+
+// Go back to explore page
+function goBackToExplore() {
+    const previousContent = sessionStorage.getItem('previousPage');
+    if (previousContent) {
+        document.querySelector('.container').innerHTML = previousContent;
+        document.title = 'Explore';
+        initializeEventListeners();
+    } else {
+        window.location.reload();
+    }
+}
+
+// Add to stack
+function addToStack(button) {
+    const card = button.closest('.course-card') || button.closest('.recommendation-card');
+    const title = card.querySelector('.course-title')?.textContent || card.querySelector('.card-title')?.textContent;
+
+    button.textContent = 'Added ✓';
+    button.style.background = '#48bb78';
+    button.style.color = 'white';
+    button.style.borderColor = '#48bb78';
+
+    setTimeout(() => {
+        button.textContent = 'Add to Stack';
+        button.style.background = 'transparent';
+        button.style.color = '#4a5568';
+        button.style.borderColor = '#e2e8f0';
+    }, 2000);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function () {
+    initializeEventListeners();
+    fetchRecommendations();
+});
+
+function initializeEventListeners() {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', function () {
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
 }
