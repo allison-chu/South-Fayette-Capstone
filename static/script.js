@@ -400,7 +400,7 @@ function createCard(item, type) {
     const tags = (item.tags || "")
         .split(",")
         .map(tag => capitalizeWords(tag.trim()))
-        .slice(0, 3);
+        .slice(0,2);
 
     card.innerHTML = `
         <div class="course-content" data-full-description="${item.description}">

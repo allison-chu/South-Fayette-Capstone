@@ -387,11 +387,17 @@
   .tag {
     background: #edf2f7;
     color: #4a5568;
-    padding: 4px 12px;
-    border-radius: 20px;
+    padding: 6px 14px;
+    border-radius: 999px; /* perfect pill shape */
     font-size: 0.85rem;
     font-weight: 500;
-  }
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1; /* fix vertical alignment */
+    white-space: nowrap;
+}
+
   
   .section-title {
     font-size: 0.85rem;
