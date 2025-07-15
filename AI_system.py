@@ -7,8 +7,8 @@ import sqlite3
 load_dotenv("keys.env")
 openai_key = os.getenv("openAI_api_key")
 
-print("🚀 Running updated AI_system.py!")
-print(f"🔑 OpenAI key loaded? {'Yes' if openai_key else 'No'}")
+print("Running updated AI_system.py!")
+print(f"OpenAI key loaded? {'Yes' if openai_key else 'No'}")
 
 # sets up all the methods needed for the AI to access and understand the database
 app = Flask(__name__)
@@ -46,7 +46,7 @@ student_ai = StudentDataAI(api_key=openai_key, db_path="database.db")
 # default route to confirm server is running
 @app.route("/")
 def home():
-    return "✅ API is running!"
+    return "API is running!"
 
 # route that the frontend calls to get recommendations
 @app.route("/recommendations", methods=["POST"])
