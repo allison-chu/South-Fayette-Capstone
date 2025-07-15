@@ -361,7 +361,7 @@ function fetchRecommendations() {
             if (classes.length > 0) {
                 const classHeader = document.createElement("h2");
                 classHeader.className = "section-title";
-                classHeader.textContent = "Recommended Classes";
+                classHeader.textContent = "Classes";
                 courseGrid.appendChild(classHeader);
 
                 classes.forEach(cls => {
@@ -373,7 +373,7 @@ function fetchRecommendations() {
             if (activities.length > 0) {
                 const activityHeader = document.createElement("h2");
                 activityHeader.className = "section-title";
-                activityHeader.textContent = "Recommended Extracurricular Activities";
+                activityHeader.textContent = "Extracurricular Activities";
                 courseGrid.appendChild(activityHeader);
 
                 activities.forEach(act => {
@@ -512,12 +512,6 @@ function addToStack(button) {
         button.style.borderColor = '#e2e8f0';
     }, 2000);
 }
-
-// Initialize page
-document.addEventListener('DOMContentLoaded', function () {
-    initializeEventListeners();
-    fetchRecommendations();
-});
 
 function initializeEventListeners() {
     const navItems = document.querySelectorAll('.nav-item');
