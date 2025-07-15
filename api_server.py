@@ -1,11 +1,11 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, session, redirect, url_for
 import os
 import sqlite3
 import random
 
 app = Flask(__name__, template_folder='templates')
+app.secret_key = 'replace-me-with-a-secret'  # needed for session
 
-# your StudentDataAI class
 class StudentDataAI:
     def __init__(self, api_key: str, db_path: str = "database.db"):
         self.api_key = api_key
@@ -33,8 +33,26 @@ class StudentDataAI:
 student_ai = StudentDataAI(api_key=os.getenv("openAI_api_key"), db_path="database.db")
 
 @app.route("/")
-def home():
-    return render_template("explore.html")
+def accounts():
+    return render_template("accounts.html")
+
+@app.route("/explore")
+def explore():
+    if "currentStudent" not in session:
+        return redirect(url_for("accounts"))
+    return render_template("explore.html", current_student=session["currentStudent"])
+
+
+@app.route("/set_student", methods=["POST"])
+def set_student():
+    data = request.json
+    session["currentStudent"] = data.get("student")
+    return jsonify({"status": "ok"})
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("accounts"))
 
 @app.route("/recommendations", methods=["POST"])
 def recommendations():
@@ -52,7 +70,5 @@ def recommendations():
     })
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5001))  # use PORT env or default to 5000
+    port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=True)
-

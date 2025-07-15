@@ -1,154 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explore</title>
-    <link rel="stylesheet" href="../static/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explore</title>
+<link rel="stylesheet" href="../static/styles.css">
 </head>
+
 <body>
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <div class="logo-placeholder">LOGO</div>
-        </div>
-        <div class="nav-items">
-            <button class="nav-item">
-                <span class="nav-item-icon"></span>
-                Dashboard
-            </button>
-            <a href="/" class="nav-item active">
-                <span class="nav-item-icon"></span>
-                Explore
-              </a>              
-            <button class="nav-item">
-                <span class="nav-item-icon"></span>
-                Notifications
-            </button>
-            <button class="nav-item">
-                <span class="nav-item-icon"></span>
-                Schedule
-            </button>
-            <button class="nav-item">
-                <span class="nav-item-icon"></span>
-                Progress Log
-            </button>
-        </div>
-        <div class="nav-bottom">
-            <button class="nav-item">
-                <span class="nav-item-icon"></span>
-                Logout
-            </button>
-            <button class="nav-item">
-                <span class="nav-item-icon"></span>
-                Settings
-            </button>
-        </div>
+
+<div class="sidebar" id="sidebar"></div>
+
+<div class="container">
+  <div class="header">
+    <h1 class="explore-title">Explore</h1>
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search for anything...">
+      <span class="search-icon"></span>
+      <button class="menu-button">☰</button>
     </div>
+  </div>
 
-    <div class="container">
-        <div class="header">
-            <h1 class="explore-title">Explore</h1>
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Search for anything...">
-                <span class="search-icon"></span>
-                <button class="menu-button">☰</button>
-            </div>
-        </div>
-
-        <div class="featured-categories">
-            <div class="category-card">
-                <h2 class="category-title">What's Popular<br>Right Now</h2>
-                <div class="category-arrow">→</div>
-            </div>
-            <div class="category-card">
-                <h2 class="category-title">Brand-New<br>Challenges</h2>
-                <div class="category-arrow">→</div>
-            </div>
-            <div class="category-card">
-                <h2 class="category-title">For Deep Thinkers<br>and Tinkerers</h2>
-                <div class="category-arrow">→</div>
-            </div>
-        </div>
-
-        <div class="recommended-section">
-            <h2 class="section-title">Recommended For You</h2>
-            <div class="course-grid">
-                <div class="course-card">
-                    <div class="course-image-explore">
-                        <button class="course-menu">⋯</button>
-                    </div>
-                    <div class="course-content">
-                        <h3 class="course-title">Product Design Challenge</h3>
-                        <div class="course-tags">
-                            <span class="tag">Design</span>
-                            <span class="tag">Creative</span>
-                        </div>
-                        <p class="course-description">Create innovative solutions through hands-on design thinking.</p>
-                        <div class="course-actions">
-                            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                            <button class="btn btn-secondary">Add to Stack</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="course-card">
-                    <div class="course-image-explore">
-                        <button class="course-menu">⋯</button>
-                    </div>
-                    <div class="course-content">
-                        <h3 class="course-title">Data Science Bootcamp</h3>
-                        <div class="course-tags">
-                            <span class="tag">Analytics</span>
-                            <span class="tag">Python</span>
-                        </div>
-                        <p class="course-description">Learn to analyze complex data and build predictive models using Python.</p>
-                        <div class="course-actions">
-                            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                            <button class="btn btn-secondary">Add to Stack</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="course-card">
-                    <div class="course-image-explore">
-                        <button class="course-menu">⋯</button>
-                    </div>
-                    <div class="course-content">
-                        <h3 class="course-title">Full-Stack Web Development</h3>
-                        <div class="course-tags">
-                            <span class="tag">Programming</span>
-                            <span class="tag">Web Dev</span>
-                        </div>
-                        <p class="course-description">Master modern web development from frontend to backend technologies.</p>
-                        <div class="course-actions">
-                            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                            <button class="btn btn-secondary">Add to Stack</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="course-card">
-                    <div class="course-image-explore">
-                        <button class="course-menu">⋯</button>
-                    </div>
-                    <div class="course-content">
-                        <h3 class="course-title">Mobile App Development</h3>
-                        <div class="course-tags">
-                            <span class="tag">Mobile</span>
-                            <span class="tag">Development</span>
-                        </div>
-                        <p class="course-description">Build native mobile applications for iOS and Android platforms.</p>
-                        <div class="course-actions">
-                            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                            <button class="btn btn-secondary">Add to Stack</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="featured-categories">
+    <div class="category-card">
+      <h2 class="category-title">What's Popular<br>Right Now</h2>
+      <div class="category-arrow">→</div>
     </div>
+    <div class="category-card">
+      <h2 class="category-title">Brand-New<br>Challenges</h2>
+      <div class="category-arrow">→</div>
+    </div>
+    <div class="category-card">
+      <h2 class="category-title">For Deep Thinkers<br>and Tinkerers</h2>
+      <div class="category-arrow">→</div>
+    </div>
+  </div>
 
-    <script src="../static/script.js"></script>
+  <div class="recommended-section">
+    <h2 class="section-title">Recommended For You</h2>
+    <div class="course-grid" id="course-grid"></div>
+  </div>
+</div>
+
+<script>
+const currentStudent = "{{ current_student }}";
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
 </body>
 </html>
-

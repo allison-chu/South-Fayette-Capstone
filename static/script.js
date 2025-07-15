@@ -1,292 +1,264 @@
-// Clear cached recs if full page reload
 if (performance.getEntriesByType("navigation")[0]?.type === "reload") {
     sessionStorage.removeItem("explorePage");
 }
 
-// Recommendation scrolling functionality
+const students = {
+  alice: {
+    name: "Alice Johnson",
+    email: "alice@example.com",
+    profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Alice",
+  },
+  bob: {
+    name: "Bob Smith",
+    email: "bob@example.com",
+    profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Bob",
+  }
+};
+
+const student = students[currentStudent];
+if (!student) {
+  window.location.href = "/";
+}
+
+// Render sidebar
+document.getElementById("sidebar").innerHTML = `
+  <div class="sidebar-logo"><div class="logo-placeholder">LOGO</div></div>
+  <div style="text-align:center;padding:20px;">
+    <img src="${student.profilePic}" style="border-radius:50%;width:80px;height:80px;margin-bottom:10px;">
+    <h3>${student.name}</h3>
+    <p style="font-size:0.8rem;color:gray;">${student.email}</p>
+    <button class="logout nav-item" onclick="logout()">Logout</button>
+  </div>
+  <div class="nav-items">
+      <button class="nav-item">Dashboard</button>
+      <a href="/" class="nav-item active">Explore</a>
+      <button class="nav-item">Notifications</button>
+      <button class="nav-item">Schedule</button>
+      <button class="nav-item">Progress Log</button>
+  </div>
+  <div class="nav-bottom">
+      <button class="nav-item">Settings</button>
+  </div>
+`;
+
+// Fetch recommendations
+fetch("/recommendations", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ student: currentStudent })
+})
+.then(res => res.json())
+.then(data => {
+  const grid = document.getElementById("course-grid");
+  grid.innerHTML = "";
+  const all = [...(data.classes || []), ...(data.activities || [])];
+  all.forEach(rec => {
+    const div = document.createElement("div");
+    div.className = "course-card";
+    div.innerHTML = `
+      <div class="course-image-explore"></div>
+      <div class="course-content" data-full-description="${rec.description}">
+        <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
+        <div class="course-tags">
+          ${(rec.tags || "").split(",").map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`).join("")}
+        </div>
+        <p class="course-description">${truncate(rec.description)}</p>
+        <div class="course-actions">
+          <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+          <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+        </div>
+      </div>`;
+    grid.appendChild(div);
+  });
+})
+.catch(err => {
+  console.error("Failed to fetch recommendations:", err);
+  document.getElementById("course-grid").innerHTML =
+    "<p style='color:red;'>Failed to load recommendations.</p>";
+});
+
+// Utility functions
+function capitalizeWords(str) {
+  return str
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function truncate(text, maxLength = 150) {
+  return text.length > maxLength ? text.slice(0, maxLength) + '…' : text;
+}
+
+function logout() {
+  window.location.href = "/logout";
+}
+
 function scrollRecommendations(dir) {
     const grid = document.getElementById('recGrid');
     grid.scrollBy({ left: dir * 250, behavior: 'smooth' });
 }
 
-// Capitalize each word
-function capitalizeWords(str) {
-    return str
-        .split(" ")
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-}
-
-// Truncate
-function truncate(text, maxLength = 150) {
-    return text.length > maxLength ? text.slice(0, maxLength) + '…' : text;
-}
-
-// Create a card
-function createCard(item, type) {
-    const card = document.createElement("div");
-    card.className = `course-card ${type}`;
-
-    const tags = (item.tags || "")
-        .split(",")
-        .map(tag => capitalizeWords(tag.trim()))
-        .slice(0, 2);
-
-    card.innerHTML = `
-        <div class="course-content" data-full-description="${item.description}">
-            <h3 class="course-title">${capitalizeWords(item.name)}</h3>
-            <div class="course-tags">
-                ${tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
-            </div>
-            <p class="course-description">${truncate(item.description)}</p>
-            <div class="course-actions">
-                <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
-            </div>
-        </div>
-    `;
-    return card;
-}
-
-// View details
 function viewDetails(button) {
-    const card = button.closest('.course-card') || button.closest('.recommendation-card');
-    const content = card.querySelector('.course-content');
-
-    const title = content.querySelector('.course-title').textContent;
-    const description = content.getAttribute('data-full-description');
-    const tags = Array.from(content.querySelectorAll('.tag')).map(tag => tag.textContent);
-
-    createDetailPage(title, description, tags);
+  const card = button.closest('.course-card');
+  const content = card.querySelector('.course-content');
+  const title = content.querySelector('.course-title').textContent;
+  const description = content.getAttribute('data-full-description');
+  const tags = Array.from(content.querySelectorAll('.tag')).map(tag => tag.textContent);
+  createDetailPage(title, description, tags);
 }
 
-// Create detail page
 function createDetailPage(title, description, tags) {
-    const currentContent = document.querySelector('.container').innerHTML;
-    sessionStorage.setItem('previousPage', currentContent);
+  const currentContent = document.querySelector('.container').innerHTML;
+  sessionStorage.setItem('previousPage', currentContent);
 
-    const detailContent = `
-        <a href="#" onclick="goBackToExplore()" style="font-size:0.85rem; color:#475569; text-decoration:none; display:inline-block; margin-bottom:20px;">⟵ Back to Explore</a>
+  const detailContent = `
+      <a href="#" onclick="goBackToExplore()" style="font-size:0.85rem; color:#475569; text-decoration:none; display:inline-block; margin-bottom:20px;">⟵ Back to Explore</a>
 
-        <div class="course-header">
-            <div class="course-image-details">Image</div>
+      <div class="course-header">
+          <div class="course-image-details">Image</div>
 
-            <div class="course-info">
-                <div class="course-title">${title}</div>
-                <div class="course-tags">
-                    ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
+          <div class="course-info">
+              <div class="course-title">${title}</div>
+              <div class="course-tags">
+                  ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+              </div>
 
-                <div>
-                    <div class="section-title">Overview</div>
-                    <div class="course-description">${description}</div>
-                </div>
+              <div>
+                  <div class="section-title">Overview</div>
+                  <div class="course-description">${description}</div>
+              </div>
 
-                <div>
-                    <div class="section-title">Skills You'll Build</div>
-                    <div class="skills-grid">
-                        <div class="skills-column">
-                            <ul>
-                                <li>Critical Thinking</li>
-                                <li>Problem Solving</li>
-                                <li>Research Skills</li>
-                                <li>Communication</li>
-                            </ul>
-                        </div>
-                        <div class="skills-column">
-                            <ul>
-                                <li>Project Management</li>
-                                <li>Collaboration</li>
-                                <li>Technical Skills</li>
-                                <li>Leadership</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+              <div>
+                  <div class="section-title">Skills You'll Build</div>
+                  <div class="skills-grid">
+                      <div class="skills-column">
+                          <ul>
+                              <li>Critical Thinking</li>
+                              <li>Problem Solving</li>
+                              <li>Research Skills</li>
+                              <li>Communication</li>
+                          </ul>
+                      </div>
+                      <div class="skills-column">
+                          <ul>
+                              <li>Project Management</li>
+                              <li>Collaboration</li>
+                              <li>Technical Skills</li>
+                              <li>Leadership</li>
+                          </ul>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
 
-        <div class="recommendations-title">You May Also Like</div>
-        <div class="recommendations-wrapper">
-            <div class="nav-arrow" onclick="scrollRecommendations(-1)">‹</div>
+      <div class="recommendations-title">You May Also Like</div>
+      <div class="recommendations-wrapper">
+          <div class="nav-arrow" onclick="scrollRecommendations(-1)">‹</div>
+          <div class="recommendations-grid" id="recGrid"><p>Loading recommendations…</p></div>
+          <div class="nav-arrow" onclick="scrollRecommendations(1)">›</div>
+      </div>
+  `;
 
-            <div class="recommendations-grid" id="recGrid">
-                <p>Loading recommendations…</p>
-            </div>
+  document.querySelector('.container').innerHTML = detailContent;
+  document.title = title;
+  window.scrollTo(0, 0);
 
-            <div class="nav-arrow" onclick="scrollRecommendations(1)">›</div>
-        </div>
-    `;
-
-    document.querySelector('.container').innerHTML = detailContent;
-    document.title = title;
-    window.scrollTo(0, 0);
-
-    fetchDummyRecommendations();
+  fetchDummyRecommendations();
 }
 
-// Fetch dummy recs for You May Also Like
 function fetchDummyRecommendations() {
-    const recGrid = document.getElementById('recGrid');
-    recGrid.innerHTML = '';
-
-    fetch("/recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "dummy" })
-    })
-        .then(res => res.json())
-        .then(data => {
-            const all = [...(data.classes || []), ...(data.activities || [])].slice(0, 4);
-
-            all.forEach(item => {
-                const tags = (item.tags || "")
-                    .split(",")
-                    .map(tag => capitalizeWords(tag.trim()))
-                    .slice(0, 2);
-
-                const card = document.createElement("div");
-                card.className = "recommendation-card";
-                card.style.flex = "1";
-                card.style.width = "auto";
-                card.style.minWidth = "200px";
-
-                card.innerHTML = `
-                    <div class="card-image"></div>
-                    <div class="course-content" data-full-description="${item.description}">
-                        <div class="card-title course-title">${capitalizeWords(item.name)}</div>
-                        <div class="card-tags course-tags">
-                            ${tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
-                        </div>
-                        <div class="card-description course-description">${truncate(item.description, 100)}</div>
-                        <div class="course-actions" style="display: flex; gap: 10px;">
-                            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                            <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
-                        </div>
-                    </div>
-                `;
-                recGrid.appendChild(card);
-            });
-        })
-        .catch(err => {
-            console.error("Failed to load recommendations:", err);
-            recGrid.innerHTML = `<p style="color: #e53e3e;">Failed to load recommendations.</p>`;
-        });
+  const recGrid = document.getElementById('recGrid');
+  recGrid.innerHTML = '';
+  fetch("/recommendations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: "dummy" })
+  })
+  .then(res => res.json())
+  .then(data => {
+      const all = [...(data.classes || []), ...(data.activities || [])].slice(0, 4);
+      all.forEach(item => {
+          const tags = (item.tags || "")
+              .split(",")
+              .map(tag => capitalizeWords(tag.trim()))
+              .slice(0, 2);
+          const card = document.createElement("div");
+          card.className = "recommendation-card";
+          card.style.flex = "1";
+          card.style.width = "auto";
+          card.style.minWidth = "200px";
+          card.innerHTML = `
+              <div class="card-image"></div>
+              <div class="course-content" data-full-description="${item.description}">
+                  <div class="card-title course-title">${capitalizeWords(item.name)}</div>
+                  <div class="card-tags course-tags">
+                      ${tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
+                  </div>
+                  <div class="card-description course-description">${truncate(item.description, 100)}</div>
+                  <div class="course-actions" style="display: flex; gap: 10px;">
+                      <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+                      <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+                  </div>
+              </div>`;
+          recGrid.appendChild(card);
+      });
+  });
 }
 
-// Go back to explore & keep same recs
 function goBackToExplore() {
-    const cached = sessionStorage.getItem("cachedRecommendations");
-    document.querySelector('.container').innerHTML = sessionStorage.getItem('explorePage');
-    document.title = 'Explore';
-    initializeEventListeners();
-
-    if (cached) {
-        const recommendedSection = document.querySelector(".recommended-section");
-        const courseGrid = recommendedSection.querySelector(".course-grid");
-        courseGrid.innerHTML = "";
-        renderRecommendations(JSON.parse(cached), courseGrid);
-    }
+  const cached = sessionStorage.getItem("previousPage");
+  document.querySelector('.container').innerHTML = cached;
+  document.title = 'Explore';
+  initializeEventListeners();
 }
 
-// Save explore state and fetch on page load
-document.addEventListener('DOMContentLoaded', function () {
-    initializeEventListeners();
-
-    const exploreContent = document.querySelector('.container').innerHTML;
-    sessionStorage.setItem('explorePage', exploreContent);
-
-    fetchRecommendations();
-});
-
-// Add to stack
 function addToStack(button) {
-    const card = button.closest('.course-card') || button.closest('.recommendation-card');
-    const title = card.querySelector('.course-title')?.textContent || card.querySelector('.card-title')?.textContent;
-
-    button.textContent = 'Added ✓';
-    button.style.background = '#48bb78';
-    button.style.color = 'white';
-    button.style.borderColor = '#48bb78';
-
-    setTimeout(() => {
-        button.textContent = 'Add to Stack';
-        button.style.background = 'transparent';
-        button.style.color = '#4a5568';
-        button.style.borderColor = '#e2e8f0';
-    }, 2000);
+  button.textContent = 'Added ✓';
+  button.style.background = '#48bb78';
+  button.style.color = 'white';
+  button.style.borderColor = '#48bb78';
+  setTimeout(() => {
+      button.textContent = 'Add to Stack';
+      button.style.background = 'transparent';
+      button.style.color = '#4a5568';
+      button.style.borderColor = '#e2e8f0';
+  }, 2000);
 }
 
-// Fetch recommendations and cache
-function fetchRecommendations() {
-    const recommendedSection = document.querySelector(".recommended-section");
-    const courseGrid = recommendedSection.querySelector(".course-grid");
-    courseGrid.innerHTML = "";
-
-    const cached = sessionStorage.getItem("cachedRecommendations");
-    if (cached) {
-        console.log("✅ Using cached recommendations");
-        renderRecommendations(JSON.parse(cached), courseGrid);
-        return;
-    }
-
-    fetch("/recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "homepage" })
-    })
-        .then(res => res.json())
-        .then(data => {
-            sessionStorage.setItem("cachedRecommendations", JSON.stringify(data));
-            renderRecommendations(data, courseGrid);
-        })
-        .catch(err => {
-            console.error("❌ Failed to fetch recommendations:", err);
-            const errorCard = document.createElement("div");
-            errorCard.className = "course-card";
-            errorCard.style.gridColumn = "1 / -1";
-            errorCard.innerHTML = `<p>⚠️ Failed to fetch recommendations.</p>`;
-            courseGrid.appendChild(errorCard);
-        });
-}
-
-// Render recommendations
-function renderRecommendations(data, courseGrid) {
-    const classes = data.classes || [];
-    const activities = data.activities || [];
-
-    if (classes.length > 0) {
-        const classHeader = document.createElement("h2");
-        classHeader.className = "section-title";
-        classHeader.textContent = "Classes";
-        courseGrid.appendChild(classHeader);
-
-        classes.forEach(cls => {
-            const card = createCard(cls, "class-card");
-            courseGrid.appendChild(card);
-        });
-    }
-
-    if (activities.length > 0) {
-        const activityHeader = document.createElement("h2");
-        activityHeader.className = "section-title";
-        activityHeader.textContent = "Extracurricular Activities";
-        courseGrid.appendChild(activityHeader);
-
-        activities.forEach(act => {
-            const card = createCard(act, "activity-card");
-            courseGrid.appendChild(card);
-        });
-    }
-}
-
-// Initialize listeners
 function initializeEventListeners() {
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', function () {
-            navItems.forEach(nav => nav.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+      item.addEventListener('click', function () {
+          navItems.forEach(nav => nav.classList.remove('active'));
+          this.classList.add('active');
+      });
+  });
+}
+
+// if you use login screen still:
+function handleLogin() {
+  const username = document.getElementById("username").value.trim().toLowerCase();
+  if (!students[username]) {
+    alert("Invalid user!");
+    return;
+  }
+  sessionStorage.setItem("currentStudent", username);
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("main-app").style.display = "flex";
+  updateProfile(students[username]);
+}
+
+function updateProfile(student) {
+  const sidebar = document.querySelector(".sidebar");
+  sidebar.innerHTML = `
+    <div class="sidebar-logo"><div class="logo-placeholder">LOGO</div></div>
+    <div style="text-align:center;margin-top:20px;">
+      <img src="${student.profilePic}" style="border-radius:50%;width:80px;height:80px;">
+      <h3>${student.name}</h3>
+    </div>
+    <div class="nav-bottom" style="margin-top:auto;">
+      <button class="nav-item" onclick="logout()">Logout</button>
+    </div>
+  `;
 }
