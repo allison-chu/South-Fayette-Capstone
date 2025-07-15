@@ -271,9 +271,3 @@ function initializeEventListeners() {
         });
     });
 }
-
-// DOM Ready
-document.addEventListener('DOMContentLoaded', function () {
-    initializeEventListeners();
-    fetchRecommendations();
-});
