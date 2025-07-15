@@ -138,8 +138,8 @@ function fetchDummyRecommendations() {
         .then(res => res.json())
         .then(data => {
             const all = [...(data.classes || []), ...(data.activities || [])];
-            if (all.length > 4) {
-                all.splice(4); // keep only 4
+            if (all.length > 3) {
+                all.splice(3); // keep only 3
             }
 
             all.forEach(item => {
@@ -150,16 +150,23 @@ function fetchDummyRecommendations() {
 
                 const card = document.createElement("div");
                 card.className = "recommendation-card";
+                card.style.flex = "1"; // Make cards expand to fill space
+                card.style.width = "auto"; // Override fixed width
+                card.style.minWidth = "200px"; // Minimum width to prevent too small cards
 
                 card.innerHTML = `
                     <div class="card-image"></div>
-                    <div class="card-title">${capitalizeWords(item.name)}</div>
-                    <div class="card-tags">
-                        ${tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
+                    <div class="course-content" data-full-description="${item.description}">
+                        <div class="card-title course-title">${capitalizeWords(item.name)}</div>
+                        <div class="card-tags course-tags">
+                            ${tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
+                        </div>
+                        <div class="card-description course-description">${truncate(item.description, 100)}</div>
+                        <div class="course-actions" style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+                            <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+                        </div>
                     </div>
-                    <div class="card-description">${truncate(item.description, 100)}</div>
-                    <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                    <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
                 `;
                 recGrid.appendChild(card);
             });
@@ -169,7 +176,6 @@ function fetchDummyRecommendations() {
             recGrid.innerHTML = `<p style="color: #e53e3e;">Failed to load recommendations.</p>`;
         });
 }
-
 // Go back to explore page
 function goBackToExplore() {
     const previousContent = sessionStorage.getItem('previousPage');
