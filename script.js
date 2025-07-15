@@ -13,16 +13,149 @@ function selectCourse(card) {
     alert('Selected course: ' + card.querySelector('.card-title').textContent);
 }
 
+// Updated function to create dynamic detail page
 function viewDetails(button) {
-    const card = button.closest('.recommendation-card');
-    const title = card.querySelector('.card-title').textContent;
-    alert('Viewing details for: ' + title);
+    const card = button.closest('.course-card') || button.closest('.recommendation-card');
+    const title = card.querySelector('.course-title').textContent || card.querySelector('.card-title').textContent;
+    const description = card.querySelector('.course-description').textContent || card.querySelector('.card-description').textContent;
+    const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent);
+    
+    // Create the detail page content
+    createDetailPage(title, description, tags);
+}
+
+function createDetailPage(title, description, tags) {
+    // Store current page content
+    const currentContent = document.querySelector('.container').innerHTML;
+    sessionStorage.setItem('previousPage', currentContent);
+    
+    // Create new detail page content
+    const detailContent = `
+        <a href="#" onclick="goBackToExplore()" style="font-size:0.85rem; color:#475569; text-decoration:none; display:inline-block; margin-bottom:20px;">⟵ Back to Explore</a>
+        
+        <div class="course-header">
+            <div class="course-image-details">Image</div>
+            
+            <div class="course-info">
+                <div class="course-title">${title}</div>
+                <div class="course-tags">
+                    ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+                
+                <div>
+                    <div class="section-title">Overview</div>
+                    <div class="course-description">${description}</div>
+                </div>
+                
+                <div>
+                    <div class="section-title">Skills You'll Build</div>
+                    <div class="skills-grid">
+                        <div class="skills-column">
+                            <ul>
+                                <li>Critical Thinking</li>
+                                <li>Problem Solving</li>
+                                <li>Research Skills</li>
+                                <li>Communication</li>
+                            </ul>
+                        </div>
+                        <div class="skills-column">
+                            <ul>
+                                <li>Project Management</li>
+                                <li>Collaboration</li>
+                                <li>Technical Skills</li>
+                                <li>Leadership</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="recommendations-title">You may also like</div>
+        <div class="recommendations-wrapper">
+            <div class="nav-arrow" onclick="scrollRecommendations(-1)">‹</div>
+            
+            <div class="recommendations-grid" id="recGrid">
+                <div class="recommendation-card">
+                    <div class="card-image"></div>
+                    <div class="card-title">Related Course 1</div>
+                    <div class="card-tags">
+                        <span class="tag">Related</span>
+                        <span class="tag">Skill</span>
+                    </div>
+                    <div class="card-description">Explore similar topics and expand your knowledge</div>
+                    <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+                    <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+                </div>
+                
+                <div class="recommendation-card">
+                    <div class="card-image"></div>
+                    <div class="card-title">Related Course 2</div>
+                    <div class="card-tags">
+                        <span class="tag">Advanced</span>
+                        <span class="tag">Practice</span>
+                    </div>
+                    <div class="card-description">Take your skills to the next level</div>
+                    <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+                    <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+                </div>
+                
+                <div class="recommendation-card">
+                    <div class="card-image"></div>
+                    <div class="card-title">Related Course 3</div>
+                    <div class="card-tags">
+                        <span class="tag">Beginner</span>
+                        <span class="tag">Foundation</span>
+                    </div>
+                    <div class="card-description">Build a strong foundation in related concepts</div>
+                    <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+                    <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+                </div>
+            </div>
+            
+            <div class="nav-arrow" onclick="scrollRecommendations(1)">›</div>
+        </div>
+    `;
+    
+    // Replace the container content
+    document.querySelector('.container').innerHTML = detailContent;
+    
+    // Update page title
+    document.title = title;
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+}
+
+function goBackToExplore() {
+    const previousContent = sessionStorage.getItem('previousPage');
+    if (previousContent) {
+        document.querySelector('.container').innerHTML = previousContent;
+        document.title = 'Explore';
+        
+        // Reinitialize event listeners for the restored content
+        initializeEventListeners();
+    } else {
+        // Fallback - reload the page
+        window.location.reload();
+    }
 }
 
 function addToStack(button) {
-    const card = button.closest('.recommendation-card');
-    const title = card.querySelector('.card-title').textContent;
-    alert('Added to stack: ' + title);
+    const card = button.closest('.course-card') || button.closest('.recommendation-card');
+    const title = card.querySelector('.course-title')?.textContent || card.querySelector('.card-title')?.textContent;
+    
+    button.textContent = 'Added ✓';
+    button.style.background = '#48bb78';
+    button.style.color = 'white';
+    button.style.borderColor = '#48bb78';
+    
+    setTimeout(() => {
+        button.textContent = 'Add to Stack';
+        button.style.background = 'transparent';
+        button.style.color = '#4a5568';
+        button.style.borderColor = '#e2e8f0';
+    }, 2000);
 }
 
 // Search functionality
@@ -130,8 +263,7 @@ function debounce(func, wait) {
     };
 }
 
-// Main DOM Content Loaded Handler
-document.addEventListener('DOMContentLoaded', function() {
+function initializeEventListeners() {
     // Course image interactivity
     const courseImage = document.querySelector('.course-image');
     if (courseImage) {
@@ -198,25 +330,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Course card button handlers
-    const viewDetailsButtons = document.querySelectorAll('.btn-primary');
+    // Course card button handlers - Updated to use onclick for View Details
     const addToStackButtons = document.querySelectorAll('.btn-secondary');
     
     addToStackButtons.forEach(button => {
         button.addEventListener('click', function(e) {
             e.stopPropagation();
-            const courseTitle = this.closest('.course-card').querySelector('.course-title').textContent;
-            this.textContent = 'Added ✓';
-            this.style.background = '#48bb78';
-            this.style.color = 'white';
-            this.style.borderColor = '#48bb78';
-            
-            setTimeout(() => {
-                this.textContent = 'Add to Stack';
-                this.style.background = 'transparent';
-                this.style.color = '#4a5568';
-                this.style.borderColor = '#e2e8f0';
-            }, 2000);
+            addToStack(this);
         });
     });
 
@@ -250,9 +370,12 @@ document.addEventListener('DOMContentLoaded', function() {
         card.style.transform = 'translateY(20px)';
         card.style.transition = `all 0.6s ease ${index * 0.1}s`;
         observer.observe(card);
-
     });
+}
 
+// Main DOM Content Loaded Handler
+document.addEventListener('DOMContentLoaded', function() {
+    initializeEventListeners();
     fetchRecommendations();
 });
 
@@ -347,32 +470,24 @@ function createRecommendationCard(text, type) {
     const [title, ...descParts] = text.split(":");
     const description = descParts.join(":").trim();
 
+    // Generate some default tags based on type
+    const defaultTags = type === "class-card" ? 
+        ['Academic', 'Learning'] : 
+        ['Extracurricular', 'Activity'];
+
     card.innerHTML = `
         <div class="course-content">
             <h3 class="course-title">${title.trim()}</h3>
+            <div class="course-tags">
+                ${defaultTags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            </div>
             <p class="course-description">${description}</p>
             <div class="course-actions">
-                <a href="details.html" class="btn btn-primary">View Details</a>
-                <button class="btn btn-secondary">Add to Stack</button>
+                <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+                <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
             </div>
         </div>
     `;
-
-    // Attach "Add to Stack" behavior
-    const addToStackBtn = card.querySelector(".btn-secondary");
-    addToStackBtn.addEventListener("click", function () {
-        this.textContent = "Added ✓";
-        this.style.background = "#48bb78";
-        this.style.color = "white";
-        this.style.borderColor = "#48bb78";
-
-        setTimeout(() => {
-            this.textContent = "Add to Stack";
-            this.style.background = "transparent";
-            this.style.color = "#4a5568";
-            this.style.borderColor = "#e2e8f0";
-        }, 2000);
-    });
 
     return card;
 }
