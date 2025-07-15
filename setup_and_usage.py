@@ -3,15 +3,18 @@ import sqlite3
 from AI_system import StudentDataAI
 from dotenv import load_dotenv
 
+# Load environment variables and get the api for the AI system
 load_dotenv(dotenv_path='keys.env')
 openai_key =os.getenv('openAI_api_key')
 
+#sets up the environment for the AI to run, this is required to fine tune the AI and guarantee that it works
 def setup_environment():
     print("setting up student data AI system...")
 
     required_packages = ['openai', 'pandas']
     missing_packages = []
 
+    #checks for all the rquired packages and libraries so that the AI can run and work
     for package in required_packages:
         try:
             __import__(package)
@@ -27,6 +30,7 @@ def setup_environment():
 
     return True
 
+#checks that the database is formated correctly and won't break the AI system
 def check_database_tables(db_path):
     try:
         conn = sqlite3.connect(db_path)
@@ -40,6 +44,7 @@ def check_database_tables(db_path):
         required_tables = ['student_data', 'classes', 'extracurriculars']
         missing_tables = []
 
+        #checks that each datatable that is supposed to be in the database is within the database
         for table in required_tables:
             if table in tables:
                 cursor.execute(f"SELECT COUNT(*) FROM {table}")
@@ -66,6 +71,7 @@ def check_database_tables(db_path):
         print(f"Database connection error: {e}")
         return False
     
+#shows sample data from the database, allows the user to check that data within the tables are correct
 def show_sample_data(db_path):
     try:
         conn = sqlite3.connect(db_path)
@@ -97,6 +103,7 @@ def show_sample_data(db_path):
         print(f"Error showing sample data: {e}")
 
 
+#tests the recommendations that the AI produces
 def test_recommendations(student_ai):
     print("\n" + "=" * 50)
     print("Testing Recommendation System")
@@ -119,6 +126,7 @@ def test_recommendations(student_ai):
             print("-"*40)
 
 
+#calls all the functions and checks everything is working as expected, only tests if the user decides to test it
 def main():
     print("Student Recommendation AI system Setup")
     print("="*50)
