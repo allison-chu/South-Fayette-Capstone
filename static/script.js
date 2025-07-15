@@ -1,3 +1,8 @@
+// Clear cached recs if full page reload
+if (performance.getEntriesByType("navigation")[0]?.type === "reload") {
+    sessionStorage.removeItem("explorePage");
+}
+
 // Recommendation scrolling functionality
 function scrollRecommendations(dir) {
     const grid = document.getElementById('recGrid');
