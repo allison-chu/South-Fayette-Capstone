@@ -48,6 +48,7 @@ def create_database():
 #data table for all the student data that exists
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS student_data (
+          studentId INTEGER,
           eventType TEXT,
           name TEXT,
           positiveREflection TEXT,
@@ -56,6 +57,17 @@ def create_database():
           yearCompleted TEXT  
         )
     ''')
+
+    #data table to hold the student identities
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS student_list (
+            studentId INTEGER,
+            name TEXT,
+            interests TEXT,
+            email TEXT,
+            gradeLevel TEXT
+            )
+        ''')
 
     conn.commit()
     conn.close
@@ -320,33 +332,57 @@ def create_database():
 
 #data for the student data, seeds the data table
     student_data_list = [
-        ('class', 'honors english 9 (writing intensive)', 'enjoys the writing portions,enjoys reading the novels', 'dislike the teacher,dislike the specific books', 4, 'freshman'),
-        ('class', 'honors english 10 (writing intensive)',	'enjoyed reading a graphic novel,liked the ability to write', 'dislike the teacher', 3,	'sophmore'),
-        ('class', 'AP english 11: language and composition (writing intensive)', 'books were more complex,less focus on the discussions then previous classes', 'none',	6, 'junior'),
-        ('class', 'concert band', 'enjoys playing as an ensemble', 'dislikes simplicity of music',	6,	'freshman'),
-        ('class', 'concert band', 'enjoys playing as an ensemble',	'dislikes simplicity of music',	6,	'sophmore'),
-        ('class', 'wind ensemble', 'enjoys playing as an ensemble,likes the complex and amount of music', 'comparision to other sections',	5,	'junior'),
-        ('class', 'introduction to art', 'learning more about art techniques,understanding the basics,learning about the history',	'having to do all the differnt techniques',	4,	'junior'),
-        ('class', 'french 1', 'learning about other cultures,communicating with others who are unlike me', 'grammer,speaking tests', 4, 'freshman'),
-        ('class', 'french 2', 'learning about other cultures,communicating with others who are unlike me',	'grammer,speaking tests', 4, 'sophmore'),
-        ('class', 'french 3', 'learning about other cultures,communicating with others who are unlike me', 'grammer,speaking tests', 3, 'junior'),
-        ('class', 'honors algebra 2', 'moving at a swift pace,complex formulas with variables',	'homework policies', 3,	'freshman'),
-        ('class', 'honors precalculus',	'moving at a swift pace,complex formulas with variables', 'homework policies',	3,	'sophmore'),
-        ('class', 'AP calculus AB',	'learning new content,understanding how things relate to each other',	'understanding which path to take', 4, 'junior'),
-        ('class', 'health',	'better understanding of people', 'working with other students on projects', 2,	'freshman'),
-        ('class', 'physical education',	'none',	'dislike physical activities,wish it taught more about how to exercise not just follow instructions', 1, 'freshman'),
-        ('class', 'honors biology (writing intensive)', 'lab based learning,writing reports', 'disections', 4, 'freshman'),
-        ('class', 'honors chemistry (writing intensive)', 'none', 'labs were overly confusing,didnt like the types of problems presented', 2, 'sophmore'),
-        ('class', 'forensic science', 'enjoyed the new teaching methods,liked the way the assignments were written', 'the amount of time given to each topic', 5, 'junior'),
-        ('class', 'honors world culutres 10 (writing intensive)', 'learning about other cultures,seeing how people are different from me', 'still focused on Western history', 4, 'sophmore'),
-        ('class', 'honors american culutures 11 (writing intensive)', 'learning about American culutre after the civil war,knowing how the past influences the present', 'none', 4,	'junior'),
-        ('class', 'AP psychology', 'enjoyed learning about how people think,enjoyed learning about how the mind shapes behavior', 'dislike the vocab tests', 6,	'junior'),
-        ('class', 'concert choir', 'likes preforming with an ensemble',	'dislike the singing tests', 3,	'freshman'),
-        ('extracurricular', 'FBLA - future business leaders of america', 'likes meeting with the group,likes participating in the competitions', 'the method of the testing/competing',	4, 'junior'),
-        ('extracurricular',	'french club',	'learning about other cultures,communicating with others who are unlike me', 'the specific activities that were planned', 3, 'freshman'),
-        ('extracurricular',	'jazz ensemble', 'playing a differnt kind of music,experiencing more interesting music', 'the feeling of jazz',	3, 'freshman'),
-        ('extracurricular',	'quiz bowl', 'likes meeting with the group,likes participating in the competitions,showing what I know', 'the competition within the team',	6, 'sophmore'),
-        ('extracurricular',	'stage crew club', 'creating and putting on a preformance',	'working with the actors,working with the director', 3,	'sophmore')   
+        (1,'class', 'honors english 9 (writing intensive)', 'enjoys the writing portions,enjoys reading the novels', 'dislike the teacher,dislike the specific books', 4, 'freshman'),
+        (1,'class', 'honors english 10 (writing intensive)',	'enjoyed reading a graphic novel,liked the ability to write', 'dislike the teacher', 3,	'sophmore'),
+        (1,'class', 'AP english 11: language and composition (writing intensive)', 'books were more complex,less focus on the discussions then previous classes', 'none',	6, 'junior'),
+        (1,'class', 'concert band', 'enjoys playing as an ensemble', 'dislikes simplicity of music',	6,	'freshman'),
+        (1,'class', 'concert band', 'enjoys playing as an ensemble',	'dislikes simplicity of music',	6,	'sophmore'),
+        (1,'class', 'wind ensemble', 'enjoys playing as an ensemble,likes the complex and amount of music', 'comparision to other sections',	5,	'junior'),
+        (1,'class', 'introduction to art', 'learning more about art techniques,understanding the basics,learning about the history',	'having to do all the differnt techniques',	4,	'junior'),
+        (1,'class', 'french 1', 'learning about other cultures,communicating with others who are unlike me', 'grammer,speaking tests', 4, 'freshman'),
+        (1,'class', 'french 2', 'learning about other cultures,communicating with others who are unlike me',	'grammer,speaking tests', 4, 'sophmore'),
+        (1,'class', 'french 3', 'learning about other cultures,communicating with others who are unlike me', 'grammer,speaking tests', 3, 'junior'),
+        (1,'class', 'honors algebra 2', 'moving at a swift pace,complex formulas with variables',	'homework policies', 3,	'freshman'),
+        (1,'class', 'honors precalculus',	'moving at a swift pace,complex formulas with variables', 'homework policies',	3,	'sophmore'),
+        (1,'class', 'AP calculus AB',	'learning new content,understanding how things relate to each other',	'understanding which path to take', 4, 'junior'),
+        (1,'class', 'health',	'better understanding of people', 'working with other students on projects', 2,	'freshman'),
+        (1,'class', 'physical education',	'none',	'dislike physical activities,wish it taught more about how to exercise not just follow instructions', 1, 'freshman'),
+        (1,'class', 'honors biology (writing intensive)', 'lab based learning,writing reports', 'disections', 4, 'freshman'),
+        (1,'class', 'honors chemistry (writing intensive)', 'none', 'labs were overly confusing,didnt like the types of problems presented', 2, 'sophmore'),
+        (1,'class', 'forensic science', 'enjoyed the new teaching methods,liked the way the assignments were written', 'the amount of time given to each topic', 5, 'junior'),
+        (1,'class', 'honors world culutres 10 (writing intensive)', 'learning about other cultures,seeing how people are different from me', 'still focused on Western history', 4, 'sophmore'),
+        (1,'class', 'honors american culutures 11 (writing intensive)', 'learning about American culutre after the civil war,knowing how the past influences the present', 'none', 4,	'junior'),
+        (1,'class', 'AP psychology', 'enjoyed learning about how people think,enjoyed learning about how the mind shapes behavior', 'dislike the vocab tests', 6,	'junior'),
+        (1,'class', 'concert choir', 'likes preforming with an ensemble',	'dislike the singing tests', 3,	'freshman'),
+        (1,'extracurricular', 'FBLA - future business leaders of america', 'likes meeting with the group,likes participating in the competitions', 'the method of the testing/competing',	4, 'junior'),
+        (1,'extracurricular',	'french club',	'learning about other cultures,communicating with others who are unlike me', 'the specific activities that were planned', 3, 'freshman'),
+        (1,'extracurricular',	'jazz ensemble', 'playing a differnt kind of music,experiencing more interesting music', 'the feeling of jazz',	3, 'freshman'),
+        (1,'extracurricular',	'quiz bowl', 'likes meeting with the group,likes participating in the competitions,showing what I know', 'the competition within the team',	6, 'sophmore'),
+        (1,'extracurricular',	'stage crew club', 'creating and putting on a preformance',	'working with the actors,working with the director', 3,	'sophmore'),
+        (2, 'class', 'english 9 (writing intensive)', 'I enjoyed learning how to improve my writing', 'I found the assigned readings pretty boring', 4, 'freshman'),
+        (2, 'class', 'podcasting', 'It was always fun planning out what to talk about with my friends for our weekly episodes', 'Consistently coming up with unique content was difficult', 7, 'freshman'),
+        (2, 'class', 'international business', 'This felt like a very practical knowledge building class for learning about business skills to help me in my future', 'Although I think the skills learned in this class will come in handy in the future, it was not interesting to me and felt like lots of busy work', 3, 'freshman'),
+        (2, 'class', 'chemistry', 'Chemical reaction demos were fun to see', 'I hated having to memorize the periodic table', 2, 'freshman'),
+        (2, 'class', 'german 1', 'I love feeling like I am able to go visit Germany and speak with the locals', 'It is difficult remembering all of the vocabulary', 6, 'freshman'),
+        (2, 'class', 'AP music theory', 'I love music so it was great learning what goes into making songs', 'I did not realize this would require so much math and logic. It is much more difficult than I realized.', 5, 'freshman'),
+        (2, 'class', 'algebra 2', 'Whenever I get a problem correct I am happy', 'Math is just not my forte', 2, 'freshman'),
+        (2, 'class', 'physical education', 'just pretty standard', 'each unit was too short for me i wish it delved more deeply', 5, 'freshman'),
+        (2, 'class', 'health', 'Required', 'I like to move around more', 4, 'freshman'),
+        (2, 'class', 'psychology', 'Actually one of my favorite classes', 'Some units were too deep for me to comprehand', 5, 'freshman'),
+        (2, 'class', 'AP U.S. comparative and AP government and politics (writing intensive)', 'Learning from our mistakes is an important piece of history', 'There is so much memorizing of boring old stuff I really do not enjoy it', 1, 'sophomore'),
+        (2, 'class', 'french 2', 'I started french in middle school so it was nice to pick it back up', 'The team project was the hardest part', 4, 'sophomore'),
+        (2, 'class', 'philosophy', 'I enjoyed thinking deeply about life and discussing big ideas with others', 'Sometimes the abstract concepts were hard to relate to real life', 5, 'sophomore'),
+        (2, 'class', 'modern history through pop culutre', 'It was fun to learn history through movies and music I already knew', 'At times it felt more like watching media than actually studying history', 3, 'sophomore'),
+        (2, 'class', 'honors business calculus', 'I felt accomplished applying math to real business problems', 'The fast pace and complex equations made it stressful to keep up', 5, 'sophomore'),
+        (2, 'class', 'introduction to film', ' I loved analyzing movies and seeing all the details I used to miss', 'It took away some of the fun of just enjoying movies for entertainment', 2, 'sophomore'),
+        (2, 'class', 'accounting IB', 'It felt rewarding to organize information and understand how businesses track money', 'Concepts were so difficult for me to understand the progress was so fast', 7, 'sophomore'),
+        (2, 'class', 'personal finance and investing', 'Personally very helpful', 'I felt guilty taking this class because I could have taken more standard classes', 3, 'sophomore'),
+        (2, 'class', 'programming with java 1', 'First experience with computing', 'I feel like I need more help going through the basics', 3, 'sophomore'),
+        (2, 'class', 'songwriting and composing music', 'Really interesting first experience', 'It challenged me to areas I am not familar with', 6, 'sophomore'),
+        (2, 'extracurricular', 'ultimate frisbee', 'I loved staying active and being part of a fun, supportive team', 'It was frustrating when practice schedules conflicted with schoolwork', 3, 'freshman'),
+        (2, 'extracurricular', 'ski and board club', 'It was exciting to get outside and try new slopes with friends', 'Trips could get expensive and sometimes felt disorganized', 6, 'freshman'),
+        (2, 'extracurricular', 'model united nations', 'I enjoyed researching global issues and improving my public speaking', 'It was stressful preparing for debates and keeping up with current events', 4, 'sophomore'),
+        (2, 'extracurricular', 'FBLA - future business leaders of america', ' I felt motivated learning real-world business skills and networking', 'Sometimes it felt too competitive and time-consuming', 5, 'sophomore')   
     ]
 
 #inserts the data into the data table
@@ -354,6 +390,19 @@ def create_database():
         INSERT OR IGNORE INTO student_data (eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearCompleted)
         VALUES (?, ?, ?, ?, ?, ?)
     ''', student_data_list)
+
+
+
+    student_list_data = [
+        (1, 'Sarah', 'math,gaming,sewing', 'fake.email@southfayette.org', 10),
+        (2, 'Landon', 'english,cooking,music', 'fake.email@southfayette.org', 11)
+    ]
+
+    cursor.executemany('''
+        INSERT OR IGNOre INTO student_list (studentId, name, interests, email, gradeLevel)
+        VALUES (?, ?, ?, ?, ?)
+    ''', student_list_data)
+
 
     conn.commit()
     conn.close()
@@ -419,7 +468,20 @@ def add_student_data(eventType, name, positiveReflection, negativeReflection, en
     finally:
         conn.close()
 
+def add_student(studentId, name, interests, email, gradeLevel):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
 
+    try:
+        cursor.execute('''
+            INSERT INTO student_list (studentId, name, interests, email, gradeLevel)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (studentId, name, interests, email, gradeLevel))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        print(f"Error: data does not currently match")
+    finally:
+        conn.close()
 
 #creates the initial datatable, only does this once
 if __name__ == "__main__":
