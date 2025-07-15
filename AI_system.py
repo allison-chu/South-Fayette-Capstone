@@ -1,9 +1,9 @@
 import os
 import sqlite3
-import json
 from typing import List, Dict
 from dotenv import load_dotenv
-from openai import OpenAI, OpenAIError
+from openai import OpenAI
+from flask import Flask, jsonify, request
 
 # Load environment variables and get the api for the AI system
 load_dotenv(dotenv_path='keys.env')
@@ -147,16 +147,26 @@ class StudentDataAI:
             return []
 
 
-# if run directly
+# sets up the flask app to expose the AI as a web API
+app = Flask(__name__)
+student_ai = StudentDataAI(api_key=openai_key, db_path="database.db")
+
+# default route to confirm server is running
+@app.route("/")
+def home():
+    return "✅ API is running!"
+
+# route that the frontend calls to get recommendations
+@app.route("/recommendations", methods=["POST"])
+def recommendations():
+    # get query from frontend
+    data = request.get_json()
+    query = data.get("query", "What classes or activities do you recommend?")
+    # get AI recommendation based on query
+    result = student_ai.get_recommendations(query)
+    # send it back as JSON
+    return jsonify({"result": result})
+
+# runs the flask server if file is run directly
 if __name__ == "__main__":
-    student_ai = StudentDataAI(api_key=openai_key, db_path="database.db")
-
-    # specific queries given to the AI that tells it what to do within the system
-    queries = [
-        "What classes or activities do you recommend?"
-    ]
-
-    # loop for each query within the list, runs the functions correctly for the system
-    for query in queries:
-        response = student_ai.get_recommendations(query)
-        print(response)
+    app.run(debug=True)
