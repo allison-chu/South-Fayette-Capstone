@@ -176,17 +176,22 @@ function fetchDummyRecommendations() {
             recGrid.innerHTML = `<p style="color: #e53e3e;">Failed to load recommendations.</p>`;
         });
 }
-// Go back to explore page
 function goBackToExplore() {
-    const previousContent = sessionStorage.getItem('previousPage');
-    if (previousContent) {
-        document.querySelector('.container').innerHTML = previousContent;
-        document.title = 'Explore';
-        initializeEventListeners();
-    } else {
-        window.location.reload();
-    }
+    document.querySelector('.container').innerHTML = sessionStorage.getItem('explorePage');
+    document.title = 'Explore';
+    initializeEventListeners();
 }
+
+// Save Explore state *once* when page loads:
+document.addEventListener('DOMContentLoaded', function() {
+    initializeEventListeners();
+    fetchRecommendations();
+
+    // Save explore page at start
+    const exploreContent = document.querySelector('.container').innerHTML;
+    sessionStorage.setItem('explorePage', exploreContent);
+});
+
 
 // Add to stack
 function addToStack(button) {
