@@ -1,13 +1,5 @@
-__pychache__/
-*.py[cod]
-*$py.class
-
-
+__pycache__/
+*.pyc
+*.db
 *.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-config/secrets.yml
+keys.env
