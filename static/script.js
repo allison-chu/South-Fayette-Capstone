@@ -3,17 +3,18 @@ if (performance.getEntriesByType("navigation")[0]?.type === "reload") {
 }
 
 const students = {
-  alice: {
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Alice",
-  },
-  bob: {
-    name: "Bob Smith",
-    email: "bob@example.com",
-    profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Bob",
-  }
-};
+    Sarah: {
+      name: "Sarah",
+      email: "fake@email.com",
+      profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Sarah",
+    },
+    Landon: {
+      name: "Landon",
+      email: "fake@email.com",
+      profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Landon",
+    }
+  };
+  
 
 const student = students[currentStudent];
 if (!student) {

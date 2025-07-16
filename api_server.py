@@ -4,7 +4,8 @@ import sqlite3
 import random
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'replace-me-with-a-secret'  # needed for session
+app.secret_key = 'my-super-secret-key'
+
 
 
 class StudentDataAI:
@@ -132,16 +133,26 @@ def accounts():
 
 @app.route("/explore")
 def explore():
+    print("SESSION DATA:", dict(session))
     if "currentStudent" not in session:
-        return redirect(url_for("accounts"))
+        return "❌ No student in session", 400
     return render_template("explore.html", current_student=session["currentStudent"])
+
+
+
+
+
 
 
 @app.route("/set_student", methods=["POST"])
 def set_student():
-    data = request.json
-    session["currentStudent"] = data.get("student")
-    return jsonify({"status": "ok"})
+    data = request.get_json()
+    name = data.get("student")
+    if not name:
+        return jsonify({"error": "No student name provided"}), 400
+    session["currentStudent"] = name
+    return jsonify({"message": f"Student {name} selected."})
+
 
 
 @app.route("/logout")
