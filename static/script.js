@@ -189,7 +189,7 @@ function createDetailPage(title, description, tags) {
             return;
         }
   
-        all.slice(0, 4).forEach(item => {
+        all.slice(0, 3).forEach(item => {
             const tags = (item.tags || "")
                 .split(",")
                 .map(tag => capitalizeWords(tag.trim()))
