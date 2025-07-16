@@ -14,21 +14,45 @@ class StudentDataAI:
         self.db_path = db_path
         self.client = None  # Optional: set up OpenAI if you plan to use it
 
+    #gets the user id based on the login of the student
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #returns: 
+    #   the student Id
     def get_user_id(self):
         if "currentStudent" not in session:
             return None
         current_student = session["currentStudent"]
+        #queries the student datatable to find the appropriate student 
         result = self._query_db("SELECT studentId FROM student_list WHERE name = ?", (current_student,))
         if result:
             return result[0]['studentId']
         return None
 
+    #gets the classes table of the database
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #returns: 
+    #   the necessary information from the table
     def get_all_classes(self):
         return self._query_db("SELECT name, description, tags FROM classes")
 
+
+    #gets the extracurriculars table of the database
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #returns: 
+    #   the necessary information from the table
     def get_all_extracurriculars(self):
         return self._query_db("SELECT name, description, tags FROM extracurriculars")
 
+
+    #gets the user student_data table of the database
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #   arg2: the student id that allows for the specific classes and expereinces of only that student to be pulled
+    #returns: 
+    #   the necessary information from the table about the specific student
     def get_student_past(self, user_id):
         return self._query_db(
             "SELECT eventType, name, positiveReflection, negativeReflection, enjoymentRating "
@@ -36,6 +60,14 @@ class StudentDataAI:
         )
 
 
+
+    #creates the recommendations for the classes
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #   arg2: the student id of the student that is being recommended classes
+    #   arg3: the number of recommendations that you want to produce
+    #returns: 
+    #   a list of recommendations based on the student past and preferences
     def generate_ai_recommendations_classes(self, student_id, num_recommendations):
         try:
             history = self.get_student_past(student_id)
@@ -65,6 +97,13 @@ class StudentDataAI:
 
 
 
+    #creates the recommendations for the extracurriculars 
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #   arg2: the student id of the student that is being recommended classes
+    #   arg3: the number of recommendations that you want to produce
+    #returns: 
+    #   a list of recommendations based on the student past and preferences
     def generate_ai_recommendations_activities(self, student_id, num_recommendations):
         try:
             preferences_row = self._query_db("SELECT interests FROM student_list WHERE studentId = ?", (student_id,))
@@ -92,6 +131,13 @@ class StudentDataAI:
             return []
 
 
+    #formats the data from the database in a way that the OpenAI api can handle
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #   arg2: the past experiences of a specific student
+    #   arg3: the preferences and interests of the specific student
+    #returns: 
+    #   a list of everything that a student has previously done and their preferences
     def _prepare_student_profile(self, history, preferences):
         profile = {
             "interests": preferences,
@@ -110,6 +156,13 @@ class StudentDataAI:
 
         return profile
 
+
+    #formats the data from the database in a way that the OpenAI api can handle
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #   arg2: the classes table of the database
+    #returns: 
+    #   a list of all the classes that are offered at South Fayette
     def _prepare_classes_data(self, classes):
         return [{
             "name": cls["name"],
@@ -117,6 +170,14 @@ class StudentDataAI:
             "tags": cls["tags"]
         } for cls in classes]
 
+
+    # returns all the information in the database as a dictionary
+    #Args: 
+    #   arg1: the instance of the StudentDataAI (does not need to be passed)
+    #   arg2: the string containing the SQL query to execute 
+    #   arg3: a tuple containing values to subsititute for the placeholders
+    #returns: 
+    #   a dictionary format of the database
     def _query_db(self, query, params=()):
         try:
             conn = sqlite3.connect(self.db_path)
