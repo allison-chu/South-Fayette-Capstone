@@ -38,8 +38,11 @@ def create_database():
         CREATE TABLE IF NOT EXISTS events (
             name TEXT,
             type TEXT,
+            date TEXT,
+            time TEXT,
             location TEXT,
             description TEXT,
+            domain TEXT,
             tags TEXT, 
             organization TEXT   
         )
@@ -392,6 +395,7 @@ def create_database():
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', student_data_list)
 
+    
     # Insert the student_list data
     student_list_data = [
         (1, 'Sarah', 'math,gaming,sewing', 'fake.email@southfayette.org', 10),
@@ -452,7 +456,7 @@ def add_extracurriculars(name, domain, tags, description, teacherSponser) :
     finally:
         conn.close()
 
-#metod to add student data to the student_data data table, must provide all necessary data fields
+#method to add student data to the student_data data table, must provide all necessary data fields
 def add_student_data(eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearCompleted) :
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
@@ -469,15 +473,36 @@ def add_student_data(eventType, name, positiveReflection, negativeReflection, en
     finally:
         conn.close()
 
+
+#method to add students to the student_list data table, must provide all necessary data fields
 def add_student(studentId, name, interests, email, gradeLevel):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
+    #checks for all the required data fields, throws an error with a message if it is missing any
     try:
         cursor.execute('''
             INSERT INTO student_list (studentId, name, interests, email, gradeLevel)
             VALUES (?, ?, ?, ?, ?)
         ''', (studentId, name, interests, email, gradeLevel))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        print(f"Error: data does not currently match")
+    finally:
+        conn.close()
+
+#method to add a new event to the events data table, must provide all necessary data fields
+def add_event(name, type, date, time, location, description, domain, tags, organization):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    #checks for all the required data fields, throws an error with a message if it is missing any
+    try:
+        cursor.execute('''
+            INSERT OR IGNORE INTO events
+            (name, type, date, time, location, description, domain, tags, organization)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (name, type, date, time, location, description, domain, tags, organization))
         conn.commit()
     except sqlite3.IntegrityError:
         print(f"Error: data does not currently match")
