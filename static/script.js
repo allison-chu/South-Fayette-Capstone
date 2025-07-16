@@ -22,14 +22,21 @@ fetch("/recommendations", {
 })
 .then(res => res.json())
 .then(data => {
-  const grid = document.getElementById("course-grid");
-  grid.innerHTML = "";
-  const all = [...(data.classes || []), ...(data.activities || [])];
-  all.forEach(rec => {
+  // Add intro sentence
+  document.getElementById("interests-intro").innerHTML = `
+    Based on your interests in <strong>${student.interests}</strong>, here are some recommendations:
+  `;
+
+  const classesGrid = document.getElementById("classes-grid");
+  const activitiesGrid = document.getElementById("activities-grid");
+  classesGrid.innerHTML = "";
+  activitiesGrid.innerHTML = "";
+
+  // Render Classes
+  (data.classes || []).forEach(rec => {
     const div = document.createElement("div");
     div.className = "course-card";
     div.innerHTML = `
-      <div class="course-image-explore"></div>
       <div class="course-content" data-full-description="${rec.description}">
         <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
         <div class="course-tags">
@@ -41,12 +48,31 @@ fetch("/recommendations", {
           <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
         </div>
       </div>`;
-    grid.appendChild(div);
+    classesGrid.appendChild(div);
+  });
+
+  // Render Extracurriculars
+  (data.activities || []).forEach(rec => {
+    const div = document.createElement("div");
+    div.className = "course-card";
+    div.innerHTML = `
+      <div class="course-content" data-full-description="${rec.description}">
+        <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
+        <div class="course-tags">
+          ${(rec.tags || "").split(",").map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`).join("")}
+        </div>
+        <p class="course-description">${truncate(rec.description)}</p>
+        <div class="course-actions">
+          <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+          <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+        </div>
+      </div>`;
+    activitiesGrid.appendChild(div);
   });
 })
 .catch(err => {
   console.error("Failed to fetch recommendations:", err);
-  document.getElementById("course-grid").innerHTML =
+  document.getElementById("interests-intro").innerHTML =
     "<p style='color:red;'>Failed to load recommendations.</p>";
 });
 
@@ -64,6 +90,7 @@ function truncate(text, maxLength = 150) {
 function logout() {
   window.location.href = "/logout";
 }
+
 
 function scrollRecommendations(dir) {
     const grid = document.getElementById('recGrid');
@@ -149,33 +176,57 @@ function fetchDummyRecommendations() {
   })
   .then(res => res.json())
   .then(data => {
-      const all = [...(data.classes || []), ...(data.activities || [])].slice(0, 4);
-      all.forEach(item => {
-          const tags = (item.tags || "")
-              .split(",")
-              .map(tag => capitalizeWords(tag.trim()))
-              .slice(0, 2);
-          const card = document.createElement("div");
-          card.className = "recommendation-card";
-          card.style.flex = "1";
-          card.style.width = "auto";
-          card.style.minWidth = "200px";
-          card.innerHTML = `
-              <div class="card-image"></div>
-              <div class="course-content" data-full-description="${item.description}">
-                  <div class="card-title course-title">${capitalizeWords(item.name)}</div>
-                  <div class="card-tags course-tags">
-                      ${tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
-                  </div>
-                  <div class="card-description course-description">${truncate(item.description, 100)}</div>
-                  <div class="course-actions" style="display: flex; gap: 10px;">
-                      <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-                      <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
-                  </div>
-              </div>`;
-          recGrid.appendChild(card);
-      });
-  });
+    // Add intro sentence
+    document.getElementById("interests-intro").innerHTML = `
+      Based on your interests in <strong>${student.interests}</strong>, here are some recommendations:
+    `;
+  
+    // Prepare grids
+    const classesGrid = document.getElementById("classes-grid");
+    const activitiesGrid = document.getElementById("activities-grid");
+    classesGrid.innerHTML = "";
+    activitiesGrid.innerHTML = "";
+  
+    // Render Classes
+    (data.classes || []).forEach(rec => {
+      const div = document.createElement("div");
+      div.className = "course-card";
+      div.innerHTML = `
+        <div class="course-image-explore"></div>
+        <div class="course-content" data-full-description="${rec.description}">
+          <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
+          <div class="course-tags">
+            ${(rec.tags || "").split(",").map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`).join("")}
+          </div>
+          <p class="course-description">${truncate(rec.description)}</p>
+          <div class="course-actions">
+            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+            <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+          </div>
+        </div>`;
+      classesGrid.appendChild(div);
+    });
+  
+    // Render Extracurriculars
+    (data.activities || []).forEach(rec => {
+      const div = document.createElement("div");
+      div.className = "course-card";
+      div.innerHTML = `
+        <div class="course-image-explore"></div>
+        <div class="course-content" data-full-description="${rec.description}">
+          <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
+          <div class="course-tags">
+            ${(rec.tags || "").split(",").map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`).join("")}
+          </div>
+          <p class="course-description">${truncate(rec.description)}</p>
+          <div class="course-actions">
+            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+            <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+          </div>
+        </div>`;
+      activitiesGrid.appendChild(div);
+    });
+  })
 }
 
 function goBackToExplore() {

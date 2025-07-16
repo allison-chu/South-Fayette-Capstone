@@ -31,9 +31,10 @@ class StudentDataAI:
 
     def get_student_past(self, user_id):
         return self._query_db(
-            "SELECT eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearsCompleted "
+            "SELECT eventType, name, positiveReflection, negativeReflection, enjoymentRating "
             "FROM student_data WHERE studentId = ?", (user_id,)
         )
+
 
     def generate_ai_recommendations_classes(self, student_id, num_recommendations):
         try:
@@ -42,7 +43,6 @@ class StudentDataAI:
             preferences = preferences_row[0]['interests'] if preferences_row else ""
             classes = self.get_all_classes()
 
-            # naive matching: if student interests in tags
             preferred_classes = [
                 cls for cls in classes
                 if any(interest.strip().lower() in cls['tags'].lower()
@@ -50,15 +50,19 @@ class StudentDataAI:
             ]
 
             if len(preferred_classes) < num_recommendations:
-                # fill up with random ones (excluding already included)
-                remaining = [c for c in classes if c not in preferred_classes]
-                preferred_classes += random.sample(remaining, min(num_recommendations - len(preferred_classes), len(remaining)))
+                # deterministically fill remaining with alphabetically sorted classes
+                remaining = sorted(
+                    [c for c in classes if c not in preferred_classes],
+                    key=lambda x: x['name']
+                )
+                preferred_classes += remaining[:(num_recommendations - len(preferred_classes))]
 
             return preferred_classes[:num_recommendations]
 
         except Exception as e:
             print(f"Error in generate_ai_recommendations_classes: {e}")
             return []
+
 
 
     def generate_ai_recommendations_activities(self, student_id, num_recommendations):
@@ -74,8 +78,12 @@ class StudentDataAI:
             ]
 
             if len(preferred_activities) < num_recommendations:
-                remaining = [a for a in activities if a not in preferred_activities]
-                preferred_activities += random.sample(remaining, min(num_recommendations - len(preferred_activities), len(remaining)))
+                # deterministically fill remaining with alphabetically sorted activities
+                remaining = sorted(
+                    [a for a in activities if a not in preferred_activities],
+                    key=lambda x: x['name']
+                )
+                preferred_activities += remaining[:(num_recommendations - len(preferred_activities))]
 
             return preferred_activities[:num_recommendations]
 
