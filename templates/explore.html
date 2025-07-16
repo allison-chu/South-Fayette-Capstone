@@ -43,9 +43,11 @@
 </div>
 
 <script>
-const currentStudent = "{{ current_student }}";
-</script>
-<script src="{{ url_for('static', filename='script.js') }}"></script>
-
+    const student = {{ student | tojson | safe }};
+    console.log("Student loaded:", student);
+    </script>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
 </body>
 </html>

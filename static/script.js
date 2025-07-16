@@ -2,51 +2,23 @@ if (performance.getEntriesByType("navigation")[0]?.type === "reload") {
     sessionStorage.removeItem("explorePage");
 }
 
-const students = {
-    Sarah: {
-      name: "Sarah",
-      email: "fake@email.com",
-      profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Sarah",
-    },
-    Landon: {
-      name: "Landon",
-      email: "fake@email.com",
-      profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Landon",
-    }
-  };
-  
-
-const student = students[currentStudent];
-if (!student) {
-  window.location.href = "/";
-}
-
 // Render sidebar
 document.getElementById("sidebar").innerHTML = `
   <div class="sidebar-logo"><div class="logo-placeholder">LOGO</div></div>
   <div style="text-align:center;padding:20px;">
-    <img src="${student.profilePic}" style="border-radius:50%;width:80px;height:80px;margin-bottom:10px;">
+    <img src="https://api.dicebear.com/6.x/adventurer/svg?seed=${student.name}" style="border-radius:50%;width:80px;height:80px;margin-bottom:10px;">
     <h3>${student.name}</h3>
     <p style="font-size:0.8rem;color:gray;">${student.email}</p>
+    <p style="font-size:0.8rem;color:gray;">Grade: ${student.gradeLevel}</p>
+    <p style="font-size:0.8rem;color:gray;">Interests: ${student.interests}</p>
     <button class="logout nav-item" onclick="logout()">Logout</button>
-  </div>
-  <div class="nav-items">
-      <button class="nav-item">Dashboard</button>
-      <a href="/" class="nav-item active">Explore</a>
-      <button class="nav-item">Notifications</button>
-      <button class="nav-item">Schedule</button>
-      <button class="nav-item">Progress Log</button>
-  </div>
-  <div class="nav-bottom">
-      <button class="nav-item">Settings</button>
   </div>
 `;
 
-// Fetch recommendations
 fetch("/recommendations", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ student: currentStudent })
+  body: JSON.stringify({ student: student.name })
 })
 .then(res => res.json())
 .then(data => {
@@ -78,7 +50,6 @@ fetch("/recommendations", {
     "<p style='color:red;'>Failed to load recommendations.</p>";
 });
 
-// Utility functions
 function capitalizeWords(str) {
   return str
     .split(" ")

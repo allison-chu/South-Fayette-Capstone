@@ -133,10 +133,21 @@ def accounts():
 
 @app.route("/explore")
 def explore():
-    print("SESSION DATA:", dict(session))
     if "currentStudent" not in session:
-        return "❌ No student in session", 400
-    return render_template("explore.html", current_student=session["currentStudent"])
+        return redirect(url_for("accounts"))
+    name = session["currentStudent"]
+
+    student_record = student_ai._query_db(
+        "SELECT name, email, interests, gradeLevel FROM student_list WHERE name = ?", (name,)
+    )
+
+    if not student_record:
+        return "Student not found", 404
+
+    student = student_record[0]  # first (and only) match
+
+    return render_template("explore.html", student=student)
+
 
 
 
