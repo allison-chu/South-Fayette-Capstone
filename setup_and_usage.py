@@ -149,6 +149,7 @@ def main():
         print("- student_data (student records)")
         print("- classes (available classes)")
         print("- extracurriculars (available activities)")
+        print("-student_list (all of the student ids)")
         return
     
     show_sample = input("\nShow sample data from tables? (y/n): ")

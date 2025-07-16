@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from dotenv import load_dotenv
 import os
 import sqlite3
@@ -13,11 +13,25 @@ print(f"OpenAI key loaded? {'Yes' if openai_key else 'No'}")
 # sets up all the methods needed for the AI to access and understand the database
 app = Flask(__name__)
 
+current_student = None
+@app.rout('/', methods = ['GET', 'POST'])
+def get_current_Student():
+    data = request.get_json()
+    current_student = data.get('currentStudent')
+
+    
+
+        
+
 class StudentDataAI:
     # initiates the AI system and the database
     def __init__(self, api_key: str, db_path: str = "database.db"):
         self.api_key = api_key
         self.db_path = db_path
+
+    userID = None
+    def get_user_id(self):
+        userID = self._query_db(f"SELECT * FROM student_list where {current_student}")
 
     # gets all the data from the classes datatable within the database
     def get_all_classes(self):

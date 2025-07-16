@@ -247,6 +247,14 @@ function handleLogin() {
   document.getElementById("login-screen").style.display = "none";
   document.getElementById("main-app").style.display = "flex";
   updateProfile(students[username]);
+
+  fetch('/get-current-student', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      currentStudent: currentStudent
+    })
+  });
 }
 
 function updateProfile(student) {
