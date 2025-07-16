@@ -2,34 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Switch Accounts</title>
 <style>
 body {
-  margin: 0;
   font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background: #f9f9f9;
+  background: #f2f2f2;
 }
-.account-switcher {
+.container {
   background: #fff;
-  padding: 20px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
   border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  padding: 20px;
+  max-width: 300px;
+  width: 100%;
+}
+h3 {
+  text-align: center;
+  margin-top: 0;
 }
 .account {
   display: flex;
   align-items: center;
   cursor: pointer;
-  margin-bottom: 15px;
-  padding: 5px;
-  border-radius: 5px;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  transition: background 0.2s ease;
 }
 .account:hover {
-  background: #eaeaea;
+  background: #eee;
 }
 .account img {
   border-radius: 50%;
@@ -37,57 +44,59 @@ body {
   height: 40px;
   margin-right: 10px;
 }
-.account-info {
-  flex: 1;
+.info {
+  line-height: 1.2;
 }
 </style>
 </head>
 <body>
 
-<div class="account-switcher">
-  <h3>Switch accounts</h3>
-  <div id="accounts-list"></div>
+<div class="container">
+  <h3>Switch Accounts</h3>
+  <div id="accounts"></div>
 </div>
 
 <script>
+// match DB student names exactly
 const students = [
-  {
-    id: 'alice',
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Alice"
-  },
-  {
-    id: 'bob',
-    name: "Bob Smith",
-    email: "bob@example.com",
-    profilePic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Bob"
-  }
+  { name: "Sarah", email: "fake@email.com", pic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Sarah" },
+  { name: "Landon", email: "fake@email.com", pic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Landon" }
 ];
 
-const container = document.getElementById("accounts-list");
+const container = document.getElementById("accounts");
 
 students.forEach(student => {
   const div = document.createElement("div");
   div.className = "account";
-  div.onclick = () => selectAccount(student.id);
-
   div.innerHTML = `
-    <img src="${student.profilePic}">
-    <div class="account-info">
+    <img src="${student.pic}">
+    <div class="info">
       <strong>${student.name}</strong><br>
       <small>${student.email}</small>
     </div>
   `;
+  div.addEventListener("click", () => selectStudent(student.name));
   container.appendChild(div);
 });
 
-function selectAccount(id) {
+function selectStudent(name) {
+  console.log(`Selecting student: ${name}`);
   fetch("/set_student", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ student: id })
-  }).then(() => window.location.href = "/explore");
+    body: JSON.stringify({ student: name })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Failed to set student");
+    return res.json();
+  })
+  .then(data => {
+    console.log("Set student response:", data);
+    window.location.href = "/explore";
+  })
+  .catch(err => {
+    alert("Error selecting student: " + err.message);
+  });
 }
 </script>
 

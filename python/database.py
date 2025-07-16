@@ -385,27 +385,28 @@ def create_database():
         (2, 'extracurricular', 'FBLA - future business leaders of america', ' I felt motivated learning real-world business skills and networking', 'Sometimes it felt too competitive and time-consuming', 5, 'sophomore')   
     ]
 
-#inserts the data into the data table
+    # Insert the student_data into the data table
     cursor.executemany('''
-        INSERT OR IGNORE INTO student_data (eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearCompleted)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO student_data 
+        (studentId, eventType, name, positiveReflection, negativeReflection, enjoymentRating, yearCompleted)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', student_data_list)
 
-
-
+    # Insert the student_list data
     student_list_data = [
         (1, 'Sarah', 'math,gaming,sewing', 'fake.email@southfayette.org', 10),
         (2, 'Landon', 'english,cooking,music', 'fake.email@southfayette.org', 11)
     ]
 
     cursor.executemany('''
-        INSERT OR IGNOre INTO student_list (studentId, name, interests, email, gradeLevel)
+        INSERT OR IGNORE INTO student_list 
+        (studentId, name, interests, email, gradeLevel)
         VALUES (?, ?, ?, ?, ?)
     ''', student_list_data)
 
-
     conn.commit()
     conn.close()
+
 
 
 
