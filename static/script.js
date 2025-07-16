@@ -107,127 +107,116 @@ function viewDetails(button) {
 }
 
 function createDetailPage(title, description, tags) {
-  const currentContent = document.querySelector('.container').innerHTML;
-  sessionStorage.setItem('previousPage', currentContent);
-
-  const detailContent = `
-      <a href="#" onclick="goBackToExplore()" style="font-size:0.85rem; color:#475569; text-decoration:none; display:inline-block; margin-bottom:20px;">⟵ Back to Explore</a>
-
-      <div class="course-header">
-          <div class="course-image-details">Image</div>
-
-          <div class="course-info">
-              <div class="course-title">${title}</div>
-              <div class="course-tags">
-                  ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-              </div>
-
-              <div>
-                  <div class="section-title">Overview</div>
-                  <div class="course-description">${description}</div>
-              </div>
-
-              <div>
-                  <div class="section-title">Skills You'll Build</div>
-                  <div class="skills-grid">
-                      <div class="skills-column">
-                          <ul>
-                              <li>Critical Thinking</li>
-                              <li>Problem Solving</li>
-                              <li>Research Skills</li>
-                              <li>Communication</li>
-                          </ul>
-                      </div>
-                      <div class="skills-column">
-                          <ul>
-                              <li>Project Management</li>
-                              <li>Collaboration</li>
-                              <li>Technical Skills</li>
-                              <li>Leadership</li>
-                          </ul>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <div class="recommendations-title">You May Also Like</div>
-      <div class="recommendations-wrapper">
-          <div class="nav-arrow" onclick="scrollRecommendations(-1)">‹</div>
-          <div class="recommendations-grid" id="recGrid"><p>Loading recommendations…</p></div>
-          <div class="nav-arrow" onclick="scrollRecommendations(1)">›</div>
-      </div>
-  `;
-
-  document.querySelector('.container').innerHTML = detailContent;
-  document.title = title;
-  window.scrollTo(0, 0);
-
-  fetchDummyRecommendations();
-}
-
-function fetchDummyRecommendations() {
-  const recGrid = document.getElementById('recGrid');
-  recGrid.innerHTML = '';
-  fetch("/recommendations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: "dummy" })
-  })
-  .then(res => res.json())
-  .then(data => {
-    // Add intro sentence
-    document.getElementById("interests-intro").innerHTML = `
-      Based on your interests in <strong>${student.interests}</strong>, here are some recommendations:
+    const currentContent = document.querySelector('.container').innerHTML;
+    sessionStorage.setItem('previousPage', currentContent);
+  
+    const detailContent = `
+        <a href="#" onclick="goBackToExplore()" style="font-size:0.85rem; color:#475569; text-decoration:none; display:inline-block; margin-bottom:20px;">⟵ Back to Explore</a>
+  
+        <div class="course-header">
+            <div class="course-image-details">Image</div>
+  
+            <div class="course-info">
+                <div class="course-title">${title}</div>
+                <div class="course-tags">
+                    ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+  
+                <div>
+                    <div class="section-title">Overview</div>
+                    <div class="course-description">${description}</div>
+                </div>
+  
+                <div>
+                    <div class="section-title">Skills You'll Build</div>
+                    <div class="skills-grid">
+                        <div class="skills-column">
+                            <ul>
+                                <li>Critical Thinking</li>
+                                <li>Problem Solving</li>
+                                <li>Research Skills</li>
+                                <li>Communication</li>
+                            </ul>
+                        </div>
+                        <div class="skills-column">
+                            <ul>
+                                <li>Project Management</li>
+                                <li>Collaboration</li>
+                                <li>Technical Skills</li>
+                                <li>Leadership</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+  
+        <div class="recommendations-title">You May Also Like</div>
+        <div class="recommendations-wrapper">
+            <div class="nav-arrow" onclick="scrollRecommendations(-1)">‹</div>
+            <div class="recommendations-grid" id="recGrid"><p>Loading recommendations…</p></div>
+            <div class="nav-arrow" onclick="scrollRecommendations(1)">›</div>
+        </div>
     `;
   
-    // Prepare grids
-    const classesGrid = document.getElementById("classes-grid");
-    const activitiesGrid = document.getElementById("activities-grid");
-    classesGrid.innerHTML = "";
-    activitiesGrid.innerHTML = "";
+    document.querySelector('.container').innerHTML = detailContent;
+    document.title = title;
+    window.scrollTo(0, 0);
   
-    // Render Classes
-    (data.classes || []).forEach(rec => {
-      const div = document.createElement("div");
-      div.className = "course-card";
-      div.innerHTML = `
-        <div class="course-image-explore"></div>
-        <div class="course-content" data-full-description="${rec.description}">
-          <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
-          <div class="course-tags">
-            ${(rec.tags || "").split(",").map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`).join("")}
-          </div>
-          <p class="course-description">${truncate(rec.description)}</p>
-          <div class="course-actions">
-            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-            <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
-          </div>
-        </div>`;
-      classesGrid.appendChild(div);
-    });
+    fetchDummyRecommendations();
+  }
   
-    // Render Extracurriculars
-    (data.activities || []).forEach(rec => {
-      const div = document.createElement("div");
-      div.className = "course-card";
-      div.innerHTML = `
-        <div class="course-image-explore"></div>
-        <div class="course-content" data-full-description="${rec.description}">
-          <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
-          <div class="course-tags">
-            ${(rec.tags || "").split(",").map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`).join("")}
-          </div>
-          <p class="course-description">${truncate(rec.description)}</p>
-          <div class="course-actions">
-            <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
-            <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
-          </div>
-        </div>`;
-      activitiesGrid.appendChild(div);
+
+  function fetchDummyRecommendations() {
+    const recGrid = document.getElementById('recGrid');
+    recGrid.innerHTML = '';
+  
+    fetch("/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: "dummy" })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const all = [...(data.classes || []), ...(data.activities || [])];
+        if (!all.length) {
+            recGrid.innerHTML = "<p style='color:gray;'>No recommendations available.</p>";
+            return;
+        }
+  
+        all.slice(0, 4).forEach(item => {
+            const tags = (item.tags || "")
+                .split(",")
+                .map(tag => capitalizeWords(tag.trim()))
+                .slice(0, 2);
+  
+            const card = document.createElement("div");
+            card.className = "recommendation-card";
+            card.style.flex = "1";
+            card.style.width = "auto";
+            card.style.minWidth = "200px";
+            card.innerHTML = `
+                <div class="card-image"></div>
+                <div class="course-content" data-full-description="${item.description}">
+                    <div class="card-title course-title">${capitalizeWords(item.name)}</div>
+                    <div class="card-tags course-tags">
+                        ${tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
+                    </div>
+                    <div class="card-description course-description">${truncate(item.description, 100)}</div>
+                    <div class="course-actions" style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="viewDetails(this)">View Details</button>
+                        <button class="btn btn-secondary" onclick="addToStack(this)">Add to Stack</button>
+                    </div>
+                </div>`;
+            recGrid.appendChild(card);
+        });
+    })
+    .catch(err => {
+        console.error("Failed to fetch dummy recommendations:", err);
+        recGrid.innerHTML = "<p style='color:red;'>Failed to load recommendations.</p>";
     });
-  })
-}
+  }
+  
 
 function goBackToExplore() {
   const cached = sessionStorage.getItem("previousPage");
