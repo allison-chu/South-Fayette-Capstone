@@ -40,7 +40,11 @@ fetch("/recommendations", {
       <div class="course-content" data-full-description="${rec.description}">
         <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
         <div class="course-tags">
-          ${(rec.tags || "").split(",").map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`).join("")}
+          ${(rec.tags || "")
+              .split(",")
+              .slice(0, 2) 
+              .map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`)
+              .join("")}
         </div>
         <p class="course-description">${truncate(rec.description)}</p>
         <div class="course-actions">
@@ -51,6 +55,8 @@ fetch("/recommendations", {
     classesGrid.appendChild(div);
   });
 
+  
+
   // Render Extracurriculars
   (data.activities || []).forEach(rec => {
     const div = document.createElement("div");
@@ -59,7 +65,11 @@ fetch("/recommendations", {
       <div class="course-content" data-full-description="${rec.description}">
         <h3 class="course-title">${capitalizeWords(rec.name)}</h3>
         <div class="course-tags">
-          ${(rec.tags || "").split(",").map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`).join("")}
+          ${(rec.tags || "")
+              .split(",")
+              .slice(0, 2) 
+              .map(t => `<span class="tag">${capitalizeWords(t.trim())}</span>`)
+              .join("")}
         </div>
         <p class="course-description">${truncate(rec.description)}</p>
         <div class="course-actions">
@@ -69,11 +79,6 @@ fetch("/recommendations", {
       </div>`;
     activitiesGrid.appendChild(div);
   });
-})
-.catch(err => {
-  console.error("Failed to fetch recommendations:", err);
-  document.getElementById("interests-intro").innerHTML =
-    "<p style='color:red;'>Failed to load recommendations.</p>";
 });
 
 function capitalizeWords(str) {
