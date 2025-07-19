@@ -288,4 +288,10 @@ function updateProfile(student) {
   `;
 }
 
+function categoryOnClick() {
+    window.location.href = "../South-Fayette-Capstone/templates/page-not-built.html";
+}
+
+document.querySelector(".category-card").addEventListener("click", categoryOnClick());
+
 
