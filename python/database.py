@@ -64,7 +64,7 @@ def create_database():
     #data table to hold the student identities
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS student_list (
-            studentId INTEGER,
+            studentId INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             interests TEXT,
             email TEXT,

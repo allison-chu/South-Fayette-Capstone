@@ -287,3 +287,5 @@ function updateProfile(student) {
     </div>
   `;
 }
+
+

@@ -19,7 +19,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   padding: 20px;
-  max-width: 300px;
+  max-width: 400px;
   width: 100%;
 }
 h3 {
@@ -47,57 +47,139 @@ h3 {
 .info {
   line-height: 1.2;
 }
+form {
+  margin-top: 10px;
+  display: none;
+}
+form input, form select, form button {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 6px;
+}
+#show-form-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 8px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+#show-form-btn:hover {
+  background-color: #45a049;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
   <h3>Switch Accounts</h3>
-  <div id="accounts"></div>
+  <div id="accounts">Loading students…</div>
+
+  <hr>
+
+  <button id="show-form-btn">Add Profile</button>
+
+  <form id="add-profile-form">
+    <input type="text" id="firstName" placeholder="First Name" required>
+    <input type="text" id="lastName" placeholder="Last Name" required>
+    <select id="interest1" required><option value="">Select Interest 1</option></select>
+    <select id="interest2" required><option value="">Select Interest 2</option></select>
+    <select id="interest3" required><option value="">Select Interest 3</option></select>
+    <button type="submit">Add Profile</button>
+  </form>
 </div>
 
 <script>
-// match DB student names exactly
-const students = [
-  { name: "Sarah", email: "fake.email@southfayette.org", pic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Sarah" },
-  { name: "Landon", email: "fake.email@southfayette.org", pic: "https://api.dicebear.com/6.x/adventurer/svg?seed=Landon" }
-];
+// load students
+fetch("/get_students")
+  .then(res => res.json())
+  .then(students => {
+    const container = document.getElementById("accounts");
+    container.innerHTML = "";
 
-const container = document.getElementById("accounts");
-
-students.forEach(student => {
-  const div = document.createElement("div");
-  div.className = "account";
-  div.innerHTML = `
-    <img src="${student.pic}">
-    <div class="info">
-      <strong>${student.name}</strong><br>
-      <small>${student.email}</small>
-    </div>
-  `;
-  div.addEventListener("click", () => selectStudent(student.name));
-  container.appendChild(div);
-});
+    students.forEach(student => {
+      const div = document.createElement("div");
+      div.className = "account";
+      div.innerHTML = `
+        <img src="${student.pic}">
+        <div class="info">
+          <strong>${student.name}</strong><br>
+          <small>${student.email}</small>
+        </div>`;
+      div.addEventListener("click", () => selectStudent(student.name));
+      container.appendChild(div);
+    });
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("accounts").innerText = "Failed to load students.";
+  });
 
 function selectStudent(name) {
-  console.log(`Selecting student: ${name}`);
   fetch("/set_student", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ student: name })
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Failed to set student");
-    return res.json();
-  })
-  .then(data => {
-    console.log("Set student response:", data);
+  .then(res => res.json())
+  .then(() => {
     window.location.href = "/explore";
   })
   .catch(err => {
-    alert("Error selecting student: " + err.message);
+    console.error(err);
+    alert("Failed to select student: " + err.message);
   });
 }
+
+// load interests
+fetch("/get_interests")
+  .then(res => res.json())
+  .then(data => {
+    const options = data.interests.map(i => `<option value="${i}">${i}</option>`).join("");
+    document.getElementById("interest1").innerHTML += options;
+    document.getElementById("interest2").innerHTML += options;
+    document.getElementById("interest3").innerHTML += options;
+  });
+
+// toggle form
+document.getElementById("show-form-btn").addEventListener("click", () => {
+  const form = document.getElementById("add-profile-form");
+  form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+});
+
+// handle add profile
+document.getElementById("add-profile-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  const interest1 = document.getElementById("interest1").value;
+  const interest2 = document.getElementById("interest2").value;
+  const interest3 = document.getElementById("interest3").value;
+
+  if (!firstName || !lastName || !interest1 || !interest2 || !interest3) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  fetch("/add_profile", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      firstName, lastName,
+      interests: [interest1, interest2, interest3]
+    })
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("Profile added! Reloading...");
+    window.location.reload();
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Failed to add profile: " + err.message);
+  });
+});
 </script>
 
 </body>

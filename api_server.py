@@ -1,198 +1,89 @@
 from flask import Flask, jsonify, request, render_template, session, redirect, url_for
-import os
 import sqlite3
-import random
+import os
+import difflib
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'my-super-secret-key'
-
+app.secret_key = 'super-secret-key'
 
 
 class StudentDataAI:
-    def __init__(self, api_key: str, db_path: str = "database.db"):
-        self.api_key = api_key
+    def __init__(self, db_path="database.db"):
         self.db_path = db_path
-        self.client = None  # Optional: set up OpenAI if you plan to use it
 
-    #gets the user id based on the login of the student
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #returns: 
-    #   the student Id
     def get_user_id(self):
         if "currentStudent" not in session:
+            print("No currentStudent in session")
             return None
-        current_student = session["currentStudent"]
-        #queries the student datatable to find the appropriate student 
-        result = self._query_db("SELECT studentId FROM student_list WHERE name = ?", (current_student,))
+
+        current_student = session["currentStudent"].strip()
+        print(f"Looking up studentId for: [{current_student}]")
+
+        result = self._query_db("""
+            SELECT studentId FROM student_list 
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+        """, (current_student,))
         if result:
+            print(f"Found studentId: {result[0]['studentId']}")
             return result[0]['studentId']
+
+        # Fallback: find closest name
+        all_students = self._query_db("SELECT name FROM student_list")
+        names = [row["name"].strip() for row in all_students]
+        closest = difflib.get_close_matches(current_student, names, n=1, cutoff=0.4)
+        if closest:
+            print(f"🔗 Closest match: [{closest[0]}]")
+            result = self._query_db("""
+                SELECT studentId FROM student_list 
+                WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+            """, (closest[0],))
+            if result:
+                return result[0]['studentId']
+
+        print("No suitable student found.")
         return None
 
-    #gets the classes table of the database
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #returns: 
-    #   the necessary information from the table
     def get_all_classes(self):
         return self._query_db("SELECT name, description, tags FROM classes")
 
-
-    #gets the extracurriculars table of the database
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #returns: 
-    #   the necessary information from the table
     def get_all_extracurriculars(self):
         return self._query_db("SELECT name, description, tags FROM extracurriculars")
 
+    def generate_ai_recommendations_classes(self, student_id, num):
+        preferences_row = self._query_db("SELECT interests FROM student_list WHERE studentId = ?", (student_id,))
+        preferences = preferences_row[0]['interests'] if preferences_row else ""
+        classes = self.get_all_classes()
 
-    #gets the user student_data table of the database
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #   arg2: the student id that allows for the specific classes and expereinces of only that student to be pulled
-    #returns: 
-    #   the necessary information from the table about the specific student
-    def get_student_past(self, user_id):
-        return self._query_db(
-            "SELECT eventType, name, positiveReflection, negativeReflection, enjoymentRating "
-            "FROM student_data WHERE studentId = ?", (user_id,)
-        )
+        preferred = [cls for cls in classes if any(
+            i.strip().lower() in cls['tags'].lower() for i in preferences.split(","))]
 
+        if len(preferred) < num:
+            preferred += [c for c in classes if c not in preferred][:num - len(preferred)]
+        return preferred[:num]
 
+    def generate_ai_recommendations_activities(self, student_id, num):
+        preferences_row = self._query_db("SELECT interests FROM student_list WHERE studentId = ?", (student_id,))
+        preferences = preferences_row[0]['interests'] if preferences_row else ""
+        activities = self.get_all_extracurriculars()
 
-    #creates the recommendations for the classes
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #   arg2: the student id of the student that is being recommended classes
-    #   arg3: the number of recommendations that you want to produce
-    #returns: 
-    #   a list of recommendations based on the student past and preferences
-    def generate_ai_recommendations_classes(self, student_id, num_recommendations):
-        try:
-            history = self.get_student_past(student_id)
-            preferences_row = self._query_db("SELECT interests FROM student_list WHERE studentId = ?", (student_id,))
-            preferences = preferences_row[0]['interests'] if preferences_row else ""
-            classes = self.get_all_classes()
+        preferred = [act for act in activities if any(
+            i.strip().lower() in act['tags'].lower() for i in preferences.split(","))]
 
-            preferred_classes = [
-                cls for cls in classes
-                if any(interest.strip().lower() in cls['tags'].lower()
-                    for interest in preferences.split(","))
-            ]
+        if len(preferred) < num:
+            preferred += [a for a in activities if a not in preferred][:num - len(preferred)]
+        return preferred[:num]
 
-            if len(preferred_classes) < num_recommendations:
-                # deterministically fill remaining with alphabetically sorted classes
-                remaining = sorted(
-                    [c for c in classes if c not in preferred_classes],
-                    key=lambda x: x['name']
-                )
-                preferred_classes += remaining[:(num_recommendations - len(preferred_classes))]
-
-            return preferred_classes[:num_recommendations]
-
-        except Exception as e:
-            print(f"Error in generate_ai_recommendations_classes: {e}")
-            return []
-
-
-
-    #creates the recommendations for the extracurriculars 
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #   arg2: the student id of the student that is being recommended classes
-    #   arg3: the number of recommendations that you want to produce
-    #returns: 
-    #   a list of recommendations based on the student past and preferences
-    def generate_ai_recommendations_activities(self, student_id, num_recommendations):
-        try:
-            preferences_row = self._query_db("SELECT interests FROM student_list WHERE studentId = ?", (student_id,))
-            preferences = preferences_row[0]['interests'] if preferences_row else ""
-            activities = self.get_all_extracurriculars()
-
-            preferred_activities = [
-                act for act in activities
-                if any(interest.strip().lower() in act['tags'].lower()
-                    for interest in preferences.split(","))
-            ]
-
-            if len(preferred_activities) < num_recommendations:
-                # deterministically fill remaining with alphabetically sorted activities
-                remaining = sorted(
-                    [a for a in activities if a not in preferred_activities],
-                    key=lambda x: x['name']
-                )
-                preferred_activities += remaining[:(num_recommendations - len(preferred_activities))]
-
-            return preferred_activities[:num_recommendations]
-
-        except Exception as e:
-            print(f"Error in generate_ai_recommendations_activities: {e}")
-            return []
-
-
-    #formats the data from the database in a way that the OpenAI api can handle
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #   arg2: the past experiences of a specific student
-    #   arg3: the preferences and interests of the specific student
-    #returns: 
-    #   a list of everything that a student has previously done and their preferences
-    def _prepare_student_profile(self, history, preferences):
-        profile = {
-            "interests": preferences,
-            "completed_things": []
-        }
-
-        for record in history:
-            profile["completed_things"].append({
-                "name": record["name"],
-                "eventType": record["eventType"],
-                "positiveReflection": record["positiveReflection"],
-                "negativeReflection": record["negativeReflection"],
-                "enjoymentRating": record["enjoymentRating"],
-                "yearCompleted": record["yearsCompleted"]
-            })
-
-        return profile
-
-
-    #formats the data from the database in a way that the OpenAI api can handle
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #   arg2: the classes table of the database
-    #returns: 
-    #   a list of all the classes that are offered at South Fayette
-    def _prepare_classes_data(self, classes):
-        return [{
-            "name": cls["name"],
-            "description": cls["description"],
-            "tags": cls["tags"]
-        } for cls in classes]
-
-
-    # returns all the information in the database as a dictionary
-    #Args: 
-    #   arg1: the instance of the StudentDataAI (does not need to be passed)
-    #   arg2: the string containing the SQL query to execute 
-    #   arg3: a tuple containing values to subsititute for the placeholders
-    #returns: 
-    #   a dictionary format of the database
     def _query_db(self, query, params=()):
-        try:
-            conn = sqlite3.connect(self.db_path)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute(query, params)
-            rows = cursor.fetchall()
-            conn.close()
-            return [dict(row) for row in rows]
-        except Exception as e:
-            print(f"Database error: {e}")
-            return []
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(query, params)
+        rows = cur.fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
 
 
-student_ai = StudentDataAI(api_key=os.getenv("openAI_api_key"), db_path="database.db")
+student_ai = StudentDataAI()
 
 
 @app.route("/")
@@ -200,45 +91,66 @@ def accounts():
     return render_template("accounts.html")
 
 
-@app.route("/explore")
-def explore():
-    if "currentStudent" not in session:
-        return redirect(url_for("accounts"))
-    name = session["currentStudent"]
-
-    student_record = student_ai._query_db(
-        "SELECT name, email, interests, gradeLevel FROM student_list WHERE name = ?", (name,)
-    )
-
-    if not student_record:
-        return "Student not found", 404
-
-    student = student_record[0]  # first (and only) match
-
-    return render_template("explore.html", student=student)
+@app.route("/get_students")
+def get_students():
+    rows = student_ai._query_db("SELECT name, email FROM student_list")
+    students = [
+        {
+            "name": r["name"],
+            "email": r["email"],
+            "pic": f"https://api.dicebear.com/6.x/adventurer/svg?seed={r['name'].split()[0]}"
+        } for r in rows
+    ]
+    return jsonify(students)
 
 
+@app.route("/get_interests")
+def get_interests():
+    rows = student_ai._query_db("SELECT tags FROM classes UNION ALL SELECT tags FROM extracurriculars")
+    tags = set()
+    for r in rows:
+        tags.update(t.strip().lower() for t in r['tags'].split(","))
+    return jsonify({"interests": sorted(tags)})
 
 
-
-
+@app.route("/add_profile", methods=["POST"])
+def add_profile():
+    d = request.get_json()
+    name = f"{d['firstName'].strip().title()} {d['lastName'].strip().title()}"
+    email = f"{d['firstName'].strip().lower()}.{d['lastName'].strip().lower()}@school.org"
+    interests = ", ".join([i.lower() for i in d['interests']])
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO student_list (name, interests, email, gradeLevel)
+        VALUES (?, ?, ?, ?)""",
+        (name, interests, email, "9"))
+    conn.commit()
+    conn.close()
+    print(f"🎉 Added profile: [{name}]")
+    return jsonify({"message": f"Profile [{name}] added!"})
 
 
 @app.route("/set_student", methods=["POST"])
 def set_student():
-    data = request.get_json()
-    name = data.get("student")
-    if not name:
-        return jsonify({"error": "No student name provided"}), 400
-    session["currentStudent"] = name
-    return jsonify({"message": f"Student {name} selected."})
+    d = request.get_json()
+    session["currentStudent"] = d["student"]
+    print(f"Current student: [{d['student']}]")
+    return jsonify({"message": "Student set."})
 
 
+@app.route("/explore")
+def explore():
+    if "currentStudent" not in session:
+        return redirect(url_for("accounts"))
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("accounts"))
+    name = session["currentStudent"]
+    student = student_ai._query_db(
+        "SELECT name, email, interests, gradeLevel FROM student_list WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))", (name,))
+    if not student:
+        return "Student not found", 404
+
+    return render_template("explore.html", student=student[0])
 
 
 @app.route("/recommendations", methods=["POST"])
@@ -250,12 +162,14 @@ def recommendations():
     classes = student_ai.generate_ai_recommendations_classes(user_id, 3)
     activities = student_ai.generate_ai_recommendations_activities(user_id, 3)
 
-    return jsonify({
-        "classes": classes,
-        "activities": activities
-    })
+    return jsonify({"classes": classes, "activities": activities})
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("accounts"))
+
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5001))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(debug=True)
