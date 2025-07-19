@@ -289,7 +289,7 @@ function updateProfile(student) {
 }
 
 function categoryOnClick() {
-    window.location.href = "../templates/page-not-built.html";
+     window.location.href = "/page-not-built";
 }
 
 document.querySelector(".category-card").addEventListener("click", categoryOnClick());
