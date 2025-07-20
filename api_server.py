@@ -169,11 +169,12 @@ def logout():
     session.clear()
     return redirect(url_for("accounts"))
 
+@app.route("/pnb")
+def noPage():
+    return render_template("pnb.html")
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=False)
 
-@app.route("/page-not-built")
-def noPage():
-    return render_template("page-not-built.html")

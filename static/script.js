@@ -228,6 +228,7 @@ function goBackToExplore() {
   document.querySelector('.container').innerHTML = cached;
   document.title = 'Explore';
   initializeEventListeners();
+  initializeCategoryCardListeners();
 }
 
 function addToStack(button) {
@@ -288,10 +289,17 @@ function updateProfile(student) {
   `;
 }
 
-function categoryOnClick() {
-     window.location.href = "/page-not-built";
+function initializeCategoryCardListeners() {
+  document.querySelectorAll(".category-card").forEach(card => {
+    card.addEventListener("click", categoryOnClick);
+  });
 }
 
-document.querySelector(".category-card").addEventListener("click", categoryOnClick());
+function categoryOnClick() {
+     window.location.href = "/pnb";
+}
 
+document.querySelectorAll(".category-card").forEach(card => {
+  card.addEventListener("click", categoryOnClick);
+});
 

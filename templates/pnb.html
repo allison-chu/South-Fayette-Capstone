@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Page Not Built</title>
-<link rel="stylesheet" href="noPage.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='noPage.css') }}">
 </head>
 
 <body>
@@ -18,5 +18,5 @@
   </div>
 
   <h2>This page has not been built for this prototype.</h2>
-  <a href = "explore.html"> Click here to return to the explore page.</a>
+  <a href="{{ url_for('explore') }}">Click here to return to the explore page.</a>
 </body>
